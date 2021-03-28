@@ -10,10 +10,26 @@ using namespace std;
 
 template <typename Iterator>
 class Paginator {
+	Paginator(Iterator begin, Iterator end, size_t page_size)
+	{
+		// Implement body
+	}
+
+	size_t size() const
+	{
+
+	}
+
+	??? begin()
+	{}
+	
+	??? end()
+	{}
 };
 
 template <typename C>
-??? Paginate(C& c, size_t page_size) {
+auto Paginate(C& c, size_t page_size) {
+  return Paginator<It>???
   // Реализуйте этот шаблон функции
 }
 
