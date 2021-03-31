@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <iterator>
+
 using namespace std;
 
 // Реализуйте шаблон класса Paginator
@@ -20,12 +22,12 @@ public:
 		size_t full_count = container_size / page_size;
 		for (size_t i = 0; i < full_count; ++i){
 			page_end = page_start + page_size;
-			vector<Iterator> page = {page_start, page_end};
+			vector<typename iterator_traits<Iterator>::value_type> page = vector(page_start, page_end);
 			pages.push_back(page);
-			page_start = next(page_end);
+			page_start = page_end;
 		}
 		if (container_size % page_size){
-			vector<Iterator> page = {page_start, end};
+			vector<typename iterator_traits<Iterator>::value_type> page = vector(page_start, end);
 			pages.push_back(page);
 		}
 	}
@@ -45,7 +47,7 @@ public:
 		return pages.end();
 	}
 private:
-	vector<vector<Iterator>> pages;
+	vector<vector<typename iterator_traits<Iterator>::value_type>> pages;
 };
 
 template <typename C>
