@@ -4,32 +4,53 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <utility>
 using namespace std;
 
 // Реализуйте шаблон класса Paginator
 
 template <typename Iterator>
 class Paginator {
+public:
 	Paginator(Iterator begin, Iterator end, size_t page_size)
 	{
-		// Implement body
+		Iterator page_start = begin;
+		Iterator page_end;
+		auto container_size = end - begin;
+		size_t full_count = container_size / page_size;
+		for (size_t i = 0; i < full_count; ++i){
+			page_end = page_start + page_size;
+			vector<Iterator> page = {page_start, page_end};
+			pages.push_back(page);
+			page_start = next(page_end);
+		}
+		if (container_size % page_size){
+			vector<Iterator> page = {page_start, end};
+			pages.push_back(page);
+		}
 	}
 
 	size_t size() const
 	{
-
+		return pages.size();
 	}
 
-	??? begin()
-	{}
+	auto begin()
+	{
+		return pages.begin();
+	}
 	
-	??? end()
-	{}
+	auto end()
+	{
+		return pages.end();
+	}
+private:
+	vector<vector<Iterator>> pages;
 };
 
 template <typename C>
 auto Paginate(C& c, size_t page_size) {
-  return Paginator<It>???
+  return Paginator{c.begin(), c.end(), page_size};
   // Реализуйте этот шаблон функции
 }
 
