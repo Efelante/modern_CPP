@@ -9,6 +9,45 @@
 
 using namespace std;
 
+template <typename Iterator>
+class Page {
+public:
+	Page(Iterator begin, Iterator end)
+	: _begin(begin), _end(end)
+	{
+		// Empty body
+	}
+
+	Iterator begin()
+	{
+		return _begin;
+	}
+
+	Iterator end()
+	{
+		return _end;
+	}
+
+	Iterator begin() const
+	{
+		return _begin;
+	}
+
+	Iterator end() const
+	{
+		return _end;
+	}
+
+
+	size_t size() const
+	{
+		return (_end - _begin);
+	}
+private:
+	Iterator _begin;
+	Iterator _end;
+};
+
 // Реализуйте шаблон класса Paginator
 
 template <typename Iterator>
@@ -22,13 +61,11 @@ public:
 		size_t full_count = container_size / page_size;
 		for (size_t i = 0; i < full_count; ++i){
 			page_end = page_start + page_size;
-			vector<typename iterator_traits<Iterator>::value_type> page = vector(page_start, page_end);
-			pages.push_back(page);
+			pages.push_back(Page(page_start, page_end));
 			page_start = page_end;
 		}
 		if (container_size % page_size){
-			vector<typename iterator_traits<Iterator>::value_type> page = vector(page_start, end);
-			pages.push_back(page);
+			pages.push_back(Page(page_start, end));
 		}
 	}
 
@@ -46,8 +83,10 @@ public:
 	{
 		return pages.end();
 	}
+	// Why don't I need const begin and end
+	// Because of auto?
 private:
-	vector<vector<typename iterator_traits<Iterator>::value_type>> pages;
+	vector<Page<Iterator>> pages;
 };
 
 template <typename C>
