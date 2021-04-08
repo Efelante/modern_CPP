@@ -9,7 +9,7 @@ using namespace std::chrono;
 
 class LogDuration {
 public:
-	LogDuration(const string &msg):
+	explicit LogDuration(const string &msg):
 		message(msg + ": "),
 		start(steady_clock::now())
 	{
