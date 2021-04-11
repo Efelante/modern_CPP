@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+#include "learner.h"
+
 using namespace std;
 
 class Learner {
