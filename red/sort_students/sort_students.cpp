@@ -1,12 +1,13 @@
 #include "student.h"
 #include "test_runner.h"
+#include "profile.h"
 
 #include <algorithm>
 
 using namespace std;
 
 //Оптимизируйте эту функцию
-bool Compare(Student first, Student second) {
+bool Compare(const Student &first, const Student &second) {
   return first.Less(second);
 }
 
@@ -47,7 +48,10 @@ void TestSorting() {
     {"Petr", "Petrov", {{"maths", 3.}}, 3.},
     {"Alexander", "Alexandrov", {{"maths", 1.}}, 1.}
   };
-  sort(students.begin(), students.end(), Compare);
+  {
+			LOG_DURATION("Sort students");
+  	sort(students.begin(), students.end(), Compare);
+  }
   ASSERT(is_sorted(students.begin(), students.end(),
     [](Student first, Student second) {
       return first.Less(second);
@@ -55,9 +59,25 @@ void TestSorting() {
   );
 }
 
+void TestSortPerformance() {
+  vector<Student> students(5000);
+  double rat = 0.0;	
+	for (auto &student: students){
+		student.first_name = "Petr";
+		student.last_name = "Petrov";
+		student.rating = rat;
+		rat += 0.5;
+	}
+  {
+			LOG_DURATION("Sort students");
+  		sort(students.begin(), students.end(), Compare);
+  }
+}
+
 int main() {
   TestRunner tr;
   RUN_TEST(tr, TestComparison);
   RUN_TEST(tr, TestSorting);
+  RUN_TEST(tr, TestSortPerformance);
   return 0;
 }
