@@ -1,4 +1,11 @@
+#include <string>
+#include <vector>
+#include <iostream>
+#include <sstream>
+
 #include "profile.h"
+
+using namespace std;
 
 int main() {
 	Learner learner;
