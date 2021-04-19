@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "profile.h"
+#include "learner.h"
 
 using namespace std;
 

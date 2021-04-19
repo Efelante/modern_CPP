@@ -1,30 +1,26 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <set>
 
-#include "learner.h"
+#include "profile.h" 
 
 using namespace std;
 
 class Learner {
  private:
-  vector<string> dict;
+  set<string> dict;
 
  public:
   int Learn(const vector<string>& words) {
-    int newWords = 0;
-    for (const auto& word : words) {
-      if (find(dict.begin(), dict.end(), word) == dict.end()) {
-        ++newWords;
-        dict.push_back(word);
-      }
-    }
-    return newWords;
+	  LOG_DURATION("Learn");
+    auto cur_size = dict.size();
+    dict.insert(words.begin(), words.end());
+    return (dict.size() - cur_size);
   }
 
   vector<string> KnownWords() {
-    sort(dict.begin(), dict.end());
-    dict.erase(unique(dict.begin(), dict.end()), dict.end());
-    return dict;
+	  LOG_DURATION("Generate known words");
+    return {dict.begin(), dict.end()};
   }
 };
