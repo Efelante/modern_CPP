@@ -8,4 +8,4 @@ clean:
 	rm a.out
 
 run:
-	cat test.txt | ./a.out
+	./a.out	
