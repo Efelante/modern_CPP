@@ -20,15 +20,36 @@ public:
 	int FindNearestFinish(int start, int finish) const 
 	{ 
 		int result = abs(start - finish); 
+		// If there is not express with a start station
 		if (reachable_lists_.count(start) < 1) { 
 			return result; 
 		}
 		const set<int>& reachable_stations = reachable_lists_.at(start); 
 		if (!reachable_stations.empty()) { 
-			result = min( result, 
-						  abs(finish - *min_element( begin(reachable_stations), end(reachable_stations), 
-						  [finish](int lhs, int rhs) { 
-							return abs(lhs - finish) < abs(rhs - finish); } )) ); 
+			// If there is direct route
+			if (reachable_stations.count(finish)){
+				result = 0;
+			} else {
+				// Find nearest right station
+				auto nr = reachable_stations.upper_bound(finish);
+				if (nr == reachable_stations.begin() && 
+					nr != reachable_stations.end()){
+					result = min(result, abs(finish - *nr));
+				}
+				if (nr != reachable_stations.begin() && 
+					nr != reachable_stations.end()){
+					// find nearest left station
+					auto nl = prev(nr);
+					result = min(result, abs(finish - *nr));
+					result = min(result, abs(finish - *nl));
+				}
+				if (nr != reachable_stations.begin() && 
+					nr == reachable_stations.end()){
+					// find nearest left station
+					auto nl = prev(nr);
+					result = min(result, abs(finish - *nl));
+				}
+			}
 		} 
 		return result; 
 	} 
@@ -50,8 +71,8 @@ void TestExample(void)
 
 int main() 
 {
-	TestRunner tr;
-	RUN_TEST(tr, TestExample);
+	//TestRunner tr;
+	//RUN_TEST(tr, TestExample);
 				
 	RouteManager routes; 
 	int query_count; 
