@@ -29,16 +29,11 @@ public:
 		}
 
 		int page_count = user_page_counts.at(user_id);
-		auto lbound = page_counts_user_counts.lower_bound(page_count);
-
-		auto part = accumulate(page_counts_user_counts.begin(),
-				lbound,
-				0,
-				[](int &sum, const pair<int, int> &item){
-				return sum + item.second;
-				}
-				);
-		return part * 1.0 / (user_count - 1);
+		int sum = 0;
+		for (auto it = page_counts_user_counts.begin(); it->first != page_count; it = next(it)){
+			sum += it->second;	
+		}
+		return sum * 1.0 / (user_count - 1);
 }
 
 private:
