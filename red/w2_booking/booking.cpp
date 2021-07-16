@@ -1,6 +1,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <set>
 #include <algorithm>
 #include <utility>
 #include <numeric>
@@ -9,44 +10,32 @@ using namespace std;
 class BookingSystem {
 public:
 	BookingSystem() {};
+	unsigned int Clients(const string &hotel_name) const
+	{
+		auto hotel_data = storage.at(hotel_name);
+		set<unsigned int> clients;
+		for (const auto &item: hotel_data){
+			clients.insert(item.second.second.begin(), item.second.second.end());
+		}
+		return clients.size();
+	}
+	unsigned int Rooms(const string &hotel_name) const
+	{
+		auto hotel_data = storage.at(hotel_name);
+		unsigned int rooms = 0;
+		for (const auto &item: hotel_data){
+			rooms += item.second.first;
+		}
+		return rooms;
+	}
+    void Book(const string &hotel_name, int time, unsigned int client_id, unsigned int room_count)
+	{
+		storage[hotel_name][time].first += room_count;
+		storage[hotel_name][time].second.insert(client_id); 
+	}
 private:
-};
-class ReadingManager {
-public:
-	ReadingManager() {};
-
-	void Read(int user_id, int page_count) {
-		user_page_counts_[user_id] = page_count;
-	}
-
-double Cheer(int user_id) const {
-	if (user_page_counts_.count(user_id) == 0) {
-		return 0;
-	}
-	const int user_count = GetUserCount();
-	if (user_count == 1) {
-		return 1;
-	}
-	int page_count = user_page_counts_.at(user_id);
-	auto lbound = page_counts_user_counts.lower_bound(page_count);
-	auto part = accumulate(page_counts_user_counts.begin(),
-			lbound,
-			0,
-			[](int sum, const pair<int, int> &item){
-				return sum + item.second;
-			}
-	);
-	return part * 1.0 / (user_count - 1);
-
-}
-
-private:
-	map<int, int> page_counts_user_counts;
-	map<int, int> user_page_counts_;
-
-	int GetUserCount() const {
-		return user_page_counts_.size();
-	}
+	// hotel_name -> (time -> (room_count, clients))
+	map<string, map<int, pair<unsigned int, set<unsigned int>>>> storage;
 };
 
 
