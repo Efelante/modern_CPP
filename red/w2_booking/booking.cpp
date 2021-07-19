@@ -42,16 +42,16 @@ public:
 		return res;
 	}
 
-    void Book(const string &hotel_name, int time, unsigned int client_id, unsigned int room_count)
+    void Book(const string &hotel_name, long long int time, unsigned int client_id, unsigned int room_count)
 	{
 		current_time = time;
 		storage[hotel_name][time].first += room_count;
 		storage[hotel_name][time].second.insert(client_id); 
 	}
 private:
-	int current_time = 0;
+	long long int current_time = 0;
 	// hotel_name -> (time -> (room_count, clients))
-	map<string, map<int, pair<unsigned int, set<unsigned int>>>> storage;
+	map<string, map<long long int, pair<unsigned int, set<unsigned int>>>> storage;
 };
 
 
@@ -72,7 +72,7 @@ int main() {
     cin >> query_type;
 
     if (query_type == "BOOK") {
-      int time;
+      long long int time;
       cin >> time;
 	  string hotel_name;
 	  cin >> hotel_name;
