@@ -34,10 +34,12 @@ public:
 			auto start_time = current_time - 86400;
 			auto start_item = hotel_data.upper_bound(start_time);
 			unsigned int rooms = 0;
-			rooms = hotel_data[current_time].first - start_item->first;
-			//for (auto item = start_item; item != hotel_data.end(); item = next(item)){
-			//	rooms += item->second.first;
-			//}
+			if (start_item == hotel_data.begin()){
+
+				rooms = prev(hotel_data.end())->second.first;
+			} else {
+				rooms = prev(hotel_data.end())->second.first - prev(start_item)->second.first;
+			}
 			res = rooms;
 		}
 		return res;
@@ -45,14 +47,14 @@ public:
 
 	void Book(const string &hotel_name, long long int time, unsigned int client_id, unsigned int room_count)
 	{
-		if (storage[hotel_name].size() != 0 && time != current_time){
-			storage[hotel_name][time].first += storage[hotel_name][current_time].first;
-			//storage[hotel_name][time].second.insert(storage[hotel_name][current_time].second); 
-		} else {
+		if (storage[hotel_name].size() != 0 && storage[hotel_name].count(time) == 0){
+			unsigned int last_room_count = prev(storage[hotel_name].end())->second.first;
+			storage[hotel_name][time].first += last_room_count; 
+		} 
 			current_time = time;
 			storage[hotel_name][time].first += room_count;
 			storage[hotel_name][time].second.insert(client_id); 
-		}
+		
 	}
 private:
 	long long int current_time = 0;
