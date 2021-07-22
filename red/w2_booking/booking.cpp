@@ -6,6 +6,8 @@
 #include <utility>
 #include <numeric>
 
+#define MAX_CLIENT_ID 10e9
+
 using namespace std;
 class BookingSystem {
 public:
@@ -13,15 +15,12 @@ public:
 	unsigned int Clients(const string &hotel_name) const
 	{
 		unsigned int res = 0;
-		if (storage.count(hotel_name) != 0){
-			auto hotel_data = storage.at(hotel_name);
+		if (hotel_to_clients.count(hotel_name) != 0){
+			auto hotel_data = hotel_to_clients.at(hotel_name);
 			auto start_time = current_time - 86400;
-			auto start_item = hotel_data.upper_bound(start_time);
-			set<unsigned int> clients;
-			for (auto item = start_item; item != hotel_data.end(); item = next(item)){
-				clients.insert(item->second.second.begin(), item->second.second.end());
-			}
-			res = clients.size();
+			auto start_item = hotel_data.upper_bound({start_time, MAX_CLIENT_ID + 1});
+			hotel_data.erase(hotel_data.begin(), start_item);
+			res = hotel_data.size();
 		}
 		return res;
 	}
@@ -35,7 +34,6 @@ public:
 			auto start_item = hotel_data.upper_bound(start_time);
 			unsigned int rooms = 0;
 			if (start_item == hotel_data.begin()){
-
 				rooms = prev(hotel_data.end())->second;
 			} else {
 				rooms = prev(hotel_data.end())->second - prev(start_item)->second;
@@ -51,10 +49,9 @@ public:
 			unsigned int last_room_count = prev(hotel_to_rooms[hotel_name].end())->second;
 			hotel_to_rooms[hotel_name][time] += last_room_count; 
 		} 
-			current_time = time;
-			hotel_to_rooms[hotel_name][time] += room_count;
-			storage[hotel_name][time].second.insert(client_id); 
-		
+		current_time = time;
+		hotel_to_rooms[hotel_name][time] += room_count;
+		hotel_to_clients[hotel_name].insert({time, client_id}); 
 	}
 private:
 	long long int current_time = 0;
