@@ -29,16 +29,16 @@ public:
 	unsigned int Rooms(const string &hotel_name) const
 	{
 		unsigned int res = 0;
-		if (storage.count(hotel_name) != 0){
-			auto hotel_data = storage.at(hotel_name);
+		if (hotel_to_rooms.count(hotel_name) != 0){
+			auto hotel_data = hotel_to_rooms.at(hotel_name);
 			auto start_time = current_time - 86400;
 			auto start_item = hotel_data.upper_bound(start_time);
 			unsigned int rooms = 0;
 			if (start_item == hotel_data.begin()){
 
-				rooms = prev(hotel_data.end())->second.first;
+				rooms = prev(hotel_data.end())->second;
 			} else {
-				rooms = prev(hotel_data.end())->second.first - prev(start_item)->second.first;
+				rooms = prev(hotel_data.end())->second - prev(start_item)->second;
 			}
 			res = rooms;
 		}
@@ -47,12 +47,12 @@ public:
 
 	void Book(const string &hotel_name, long long int time, unsigned int client_id, unsigned int room_count)
 	{
-		if (storage[hotel_name].size() != 0 && storage[hotel_name].count(time) == 0){
-			unsigned int last_room_count = prev(storage[hotel_name].end())->second.first;
-			storage[hotel_name][time].first += last_room_count; 
+		if (hotel_to_rooms[hotel_name].size() != 0 && hotel_to_rooms[hotel_name].count(time) == 0){
+			unsigned int last_room_count = prev(hotel_to_rooms[hotel_name].end())->second;
+			hotel_to_rooms[hotel_name][time] += last_room_count; 
 		} 
 			current_time = time;
-			storage[hotel_name][time].first += room_count;
+			hotel_to_rooms[hotel_name][time] += room_count;
 			storage[hotel_name][time].second.insert(client_id); 
 		
 	}
@@ -60,6 +60,8 @@ private:
 	long long int current_time = 0;
 	// hotel_name -> (time -> (room_count, clients))
 	map<string, map<long long int, pair<unsigned int, set<unsigned int>>>> storage;
+	map<string, map<long long int, unsigned int>> hotel_to_rooms;
+	map<string, set<pair<long long int, unsigned int>>> hotel_to_clients;
 };
 
 
