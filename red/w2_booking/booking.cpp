@@ -17,10 +17,11 @@ public:
 		unsigned int res = 0;
 		if (hotel_to_clients.count(hotel_name) != 0){
 			auto hotel_data = hotel_to_clients.at(hotel_name);
+			cout << "Hotel: " << hotel_name << " Time: ten" << " Clients: " << hotel_data[10].size() << endl;
 			auto start_time = current_time - 86400;
-			auto start_item = hotel_data.upper_bound({start_time, MAX_CLIENT_ID + 1});
-			hotel_data.erase(hotel_data.begin(), start_item);
-			res = hotel_data.size();
+			auto start_item = hotel_data.upper_bound(start_time);
+			cout << "Hotel: " << hotel_name << " Time: " << start_item->first << " Clients: " << start_item->second.size() << endl;
+			res = start_item->second.size();
 		}
 		return res;
 	}
@@ -51,14 +52,19 @@ public:
 		} 
 		current_time = time;
 		hotel_to_rooms[hotel_name][time] += room_count;
-		hotel_to_clients[hotel_name].insert({time, client_id}); 
+		hotel_to_clients[hotel_name][time].insert(client_id);
+		auto time_to_clients = hotel_to_clients[hotel_name];
+		auto day_ago = time_to_clients.upper_bound(time - 86400);
+		for (auto item = day_ago; item != time_to_clients.end(); item = next(item)){
+			item->second.insert(client_id);
+			cout << "Hotel: " << hotel_name << " Time: " << item->first << " Clients: " << item->second.size() << endl;
+		}
+			cout << "Hotel: " << hotel_name << " Time: " << day_ago->first << " Clients: " << day_ago->second.size() << endl;
 	}
 private:
 	long long int current_time = 0;
-	// hotel_name -> (time -> (room_count, clients))
-	map<string, map<long long int, pair<unsigned int, set<unsigned int>>>> storage;
 	map<string, map<long long int, unsigned int>> hotel_to_rooms;
-	map<string, set<pair<long long int, unsigned int>>> hotel_to_clients;
+	map<string, map<long long int, set<unsigned int>>> hotel_to_clients;
 };
 
 
