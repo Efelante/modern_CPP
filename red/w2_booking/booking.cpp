@@ -2,6 +2,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <deque>
 #include <algorithm>
 #include <utility>
 #include <numeric>
@@ -13,15 +14,21 @@ class BookingSystem {
 public:
 	BookingSystem() {};
 
-	unsigned int Clients(const string &hotel_name) const
+	unsigned int Clients(const string &hotel_name)
 	{
 		unsigned int res = 0;
 		if (hotel_to_clients.count(hotel_name) != 0){
-			auto hotel_data = hotel_to_clients.at(hotel_name);
-			auto start_time = current_time - 86400;
-			auto start_item = hotel_data.upper_bound(start_time);
-			if (start_item != hotel_data.end()){
-				res = start_item->second.size();
+			long long int start_time = current_time - 86400;
+			auto &time = hotel_to_time.at(hotel_name);
+			auto &clients = hotel_to_clients.at(hotel_name);
+			auto start_item = find_if(time.begin(), time.end(), 
+					[start_time](long long int time){return time > start_time;});
+			if (start_item != time.end()){
+				auto offset = start_item - time.begin();
+				set<unsigned int> unique_clients(clients.begin() + offset, clients.end());
+				res = unique_clients.size();
+				clients.erase(clients.begin(), clients.begin() + offset);
+				time.erase(time.begin(), start_item);
 			}
 		}
 		return res;
@@ -53,26 +60,15 @@ public:
 		} 
 		current_time = time;
 		hotel_to_rooms[hotel_name][time] += room_count;
-		hotel_to_clients[hotel_name][time].insert(client_id);
-
-		auto &time_to_clients = hotel_to_clients[hotel_name];
-		auto day_ago = time_to_clients.upper_bound(time - 86400);
-		for (auto item = day_ago; item != time_to_clients.end(); item = next(item)){
-			item->second.insert(client_id);
-		}
+		hotel_to_time[hotel_name].push_back(time);
+		hotel_to_clients[hotel_name].push_back(client_id);
 	}
 
-	void PrintClients(const string &hotel_name)
-	{
-		auto time_to_clients = hotel_to_clients[hotel_name];
-		for (auto item = time_to_clients.begin(); item != time_to_clients.end(); item = next(item)){
-			cout << "Stats: Time: " << item->first << " Clients: " << item->second.size() << endl;
-		}
-	}
 private:
 	long long int current_time = 0;
 	map<string, map<long long int, unsigned int>> hotel_to_rooms;
-	map<string, map<long long int, set<unsigned int>>> hotel_to_clients;
+	map<string, deque<long long int>> hotel_to_time;
+	map<string, deque<unsigned int>> hotel_to_clients;
 };
 
 
@@ -103,7 +99,6 @@ int main() {
 			cin >> room_count;
 
 			bsystem.Book(hotel_name, time, client_id, room_count);
-			//bsystem.PrintClients(hotel_name);
 		} else if (query_type == "CLIENTS") {
 			string hotel_name;
 			cin >> hotel_name;
