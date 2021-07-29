@@ -42,12 +42,14 @@ public:
 			auto start_time = current_time - 86400;
 			auto start_item = hotel_data.upper_bound(start_time);
 			unsigned int rooms = 0;
-			if (start_item == hotel_data.begin()){
-				rooms = prev(hotel_data.end())->second;
-			} else {
-				rooms = prev(hotel_data.end())->second - prev(start_item)->second;
+			if (start_item != hotel_data.end()){
+				if (start_item == hotel_data.begin()){
+					rooms = prev(hotel_data.end())->second;
+				} else {
+					rooms = prev(hotel_data.end())->second - prev(start_item)->second;
+				}
+				res = rooms;
 			}
-			res = rooms;
 		}
 		return res;
 	}
