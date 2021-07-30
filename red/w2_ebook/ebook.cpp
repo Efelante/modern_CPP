@@ -13,7 +13,11 @@ public:
 	void Read(int user_id, int page_count) {
 		if (user_page_counts.count(user_id) != 0){		// Log Q
 			int old_count = user_page_counts[user_id];	// Log Q
-			page_counts_user_counts[old_count] -= 1;	// Log Q
+			int &user_count = page_counts_user_counts[old_count];	// Log Q
+			user_count -= 1;
+			if (user_count == 0){
+				page_counts_user_counts.erase(old_count);
+			}
 		}
 		user_page_counts[user_id] = page_count;			// Log Q
 		page_counts_user_counts[page_count] += 1;		// Log Q
