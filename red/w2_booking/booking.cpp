@@ -42,22 +42,18 @@ public:
 			auto start_time = current_time - 86400;
 			auto start_item = hotel_data.upper_bound(start_time);
 			unsigned int rooms = 0;
-			if (start_item == hotel_data.begin()){
-				rooms = prev(hotel_data.end())->second;
-			} else {
-				rooms = prev(hotel_data.end())->second - prev(start_item)->second;
+			if (start_item != hotel_data.end()){
+				for (auto item = start_item; item != hotel_data.end(); item = next(item)){
+					rooms += item->second;
+				}
+				res = rooms;
 			}
-			res = rooms;
 		}
 		return res;
 	}
 
 	void Book(const string &hotel_name, long long int time, unsigned int client_id, unsigned int room_count)
 	{
-		if (hotel_to_rooms.count(hotel_name) != 0 && hotel_to_rooms.at(hotel_name).count(time) == 0){
-			unsigned int last_room_count = prev(hotel_to_rooms[hotel_name].end())->second;
-			hotel_to_rooms[hotel_name][time] += last_room_count; 
-		} 
 		current_time = time;
 		hotel_to_rooms[hotel_name][time] += room_count;
 		hotel_to_time[hotel_name].push_back(time);
