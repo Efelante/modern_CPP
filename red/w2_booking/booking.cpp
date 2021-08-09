@@ -40,13 +40,17 @@ public:
 
 	void Book(const string &hotel_name, long long int time, unsigned int client_id, unsigned int room_count)
 	{
-		current_time = time;
 		hotel_to_rooms[hotel_name].push_back(room_count);
 		hotel_to_time[hotel_name].push_back(time);
 		hotel_to_clients[hotel_name].push_back(client_id);
-		for (auto &hotel: hotel_to_time){
-			ClearData(hotel.first);
+		hotel_to_offset[hotel_name];
+		if (time != current_time){
+			current_time = time;
+			for (auto &hotel: hotel_to_time){
+				ClearData(hotel.first);
+			}
 		}
+		current_time = time;
 	}
 
 private:
