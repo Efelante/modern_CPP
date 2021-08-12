@@ -3,6 +3,7 @@
 #include <map>
 #include <set>
 #include <deque>
+#include <queue>
 #include <algorithm>
 #include <utility>
 #include <numeric>
@@ -43,11 +44,12 @@ public:
 		hotel_to_rooms[hotel_name].push_back(room_count);
 		hotel_to_time[hotel_name].push_back(time);
 		hotel_to_clients[hotel_name].push_back(client_id);
-		hotel_to_offset[hotel_name];
-		if (time != current_time){
+		int offset = hotel_to_offset[hotel_name];
+		long long int start_time = hotel_to_time[hotel_name][offset];
+		if ((time != current_time) && (start_time <= (time - 86400))){
 			current_time = time;
-			for (auto &hotel: hotel_to_time){
-				ClearData(hotel.first);
+			for (auto &[hotel, time]: hotel_to_time){
+				ClearData(hotel);
 			}
 		}
 		current_time = time;
@@ -56,25 +58,18 @@ public:
 private:
 	void ClearData (const string &hotel_name)
 	{
-		if (hotel_to_clients.count(hotel_name) != 0){
-			long long int start_time = current_time - 86400;
-			auto &time = hotel_to_time.at(hotel_name);
-			auto &offset = hotel_to_offset[hotel_name];
-			auto start_item = find_if(time.begin() + offset, time.end(), 
-					[start_time](long long int time){return time > start_time;});
-			if (start_item != time.end()){
-				offset = start_item - time.begin();
-			} else {
-				offset = time.size();
-			}
-		}
+		long long int start_time = current_time - 86400;
+		auto &time = hotel_to_time.at(hotel_name);
+		auto &offset = hotel_to_offset[hotel_name];
+		auto start_item = upper_bound(time.begin() + offset, time.end(), start_time);
+		offset = start_item - time.begin();
 
 	}
 	long long int current_time = 0;
 	map<string, int> hotel_to_offset;
-	map<string, deque<unsigned int>> hotel_to_rooms;
-	map<string, deque<long long int>> hotel_to_time;
-	map<string, deque<unsigned int>> hotel_to_clients;
+	map<string, vector<unsigned int>> hotel_to_rooms;
+	map<string, vector<long long int>> hotel_to_time;
+	map<string, vector<unsigned int>> hotel_to_clients;
 };
 
 
