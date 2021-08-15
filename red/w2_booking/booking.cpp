@@ -18,35 +18,33 @@ public:
 	unsigned int Clients(const string &hotel_name)
 	{
 		unsigned int res = 0;
-		if (hotel_to_clients.count(hotel_name) != 0){
-			auto clients = hotel_to_clients.at(hotel_name);
-			auto offset = hotel_to_offset.at(hotel_name);
-			set<unsigned int> unique_clients(clients.begin() + offset, clients.end());
-			res = unique_clients.size();
+		if (hotel_to_client_counts.count(hotel_name) != 0){
+			auto &client_to_count = hotel_to_client_counts.at(hotel_name);
+			res = count_if(client_to_count.begin(), client_to_count.end(), [](const auto &client){return (client.second > 0);});
 		}
 		return res;
 	}
 
 	unsigned int Rooms(const string &hotel_name) const
 	{
-		unsigned int res = 0;
-		if (hotel_to_rooms.count(hotel_name) != 0){
-			auto rooms = hotel_to_rooms.at(hotel_name);
-			auto offset = hotel_to_offset.at(hotel_name);
-			unsigned int rooms_count = accumulate(rooms.begin() + offset, rooms.end(), 0);
-			res = rooms_count;
+		if (hotel_to_rooms_count.count(hotel_name) != 0){
+			return hotel_to_rooms_count.at(hotel_name);
+		} else {
+			return 0;
 		}
-		return res;
 	}
 
 	void Book(const string &hotel_name, long long int time, unsigned int client_id, unsigned int room_count)
 	{
-		hotel_to_rooms[hotel_name].push_back(room_count);
-		hotel_to_time[hotel_name].push_back(time);
-		hotel_to_clients[hotel_name].push_back(client_id);
-		int offset = hotel_to_offset[hotel_name];
-		long long int start_time = hotel_to_time[hotel_name][offset];
-		if ((time != current_time) && (start_time <= (time - 86400))){
+		hotel_to_time[hotel_name].push(time);
+
+		hotel_to_rooms[hotel_name].push(room_count);
+		hotel_to_rooms_count[hotel_name] += room_count;
+
+		hotel_to_clients[hotel_name].push(client_id);
+		hotel_to_client_counts[hotel_name][client_id] += 1;
+
+		if (time != current_time){
 			current_time = time;
 			for (auto &[hotel, time]: hotel_to_time){
 				ClearData(hotel);
@@ -60,16 +58,24 @@ private:
 	{
 		long long int start_time = current_time - 86400;
 		auto &time = hotel_to_time.at(hotel_name);
-		auto &offset = hotel_to_offset[hotel_name];
-		auto start_item = upper_bound(time.begin() + offset, time.end(), start_time);
-		offset = start_item - time.begin();
-
+		auto &rooms = hotel_to_rooms.at(hotel_name);
+		auto &rooms_count = hotel_to_rooms_count.at(hotel_name);
+		auto &clients = hotel_to_clients.at(hotel_name);
+		auto &clients_count = hotel_to_client_counts.at(hotel_name);
+		while (!time.empty() && time.front() <= start_time){
+			time.pop();
+			rooms_count -= rooms.front();
+			rooms.pop();
+			clients_count[clients.front()] -= 1;
+			clients.pop();
+		}
 	}
 	long long int current_time = 0;
-	map<string, int> hotel_to_offset;
-	map<string, vector<unsigned int>> hotel_to_rooms;
-	map<string, vector<long long int>> hotel_to_time;
-	map<string, vector<unsigned int>> hotel_to_clients;
+	map<string, queue<long long int>> hotel_to_time;
+	map<string, queue<unsigned int>> hotel_to_rooms;
+	map<string, unsigned int> hotel_to_rooms_count;
+	map<string, queue<unsigned int>> hotel_to_clients;
+	map<string, map<unsigned int, unsigned int>> hotel_to_client_counts;
 };
 
 
