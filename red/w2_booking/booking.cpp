@@ -11,24 +11,60 @@
 #define MAX_CLIENT_ID 10e9
 
 using namespace std;
+class Hotel {
+public:
+		Hotel(){};
+		void Clear(long long int start_time)
+		{
+			while (!time.empty() && time.front() <= start_time){
+				time.pop();
+				rooms_count -= rooms.front();
+				rooms.pop();
+				clients_count[clients.front()] -= 1;
+				clients.pop();
+			}
+		}
+
+		unsigned int GetClientsCount(){
+				return count_if(clients_count.begin(), clients_count.end(), [](const auto &client){return (client.second > 0);});
+		}
+
+		unsigned int GetRoomsCount() const{
+				return rooms_count; 
+		}
+
+		void Book(long long int _time, unsigned int client_id, unsigned int room_count)
+	{
+		time.push(_time);
+		rooms.push(room_count);
+		rooms_count += room_count;
+		clients.push(client_id);
+		clients_count[client_id] += 1;
+	}
+private:
+		unsigned int rooms_count;
+		map<unsigned int, unsigned int> clients_count;
+		queue<unsigned int> clients;
+		queue<unsigned int> rooms;
+		queue<long long int> time;
+};
 class BookingSystem {
 public:
 	BookingSystem() {};
 
 	unsigned int Clients(const string &hotel_name)
 	{
-		unsigned int res = 0;
-		if (hotel_to_client_counts.count(hotel_name) != 0){
-			auto &client_to_count = hotel_to_client_counts.at(hotel_name);
-			res = count_if(client_to_count.begin(), client_to_count.end(), [](const auto &client){return (client.second > 0);});
+		if (name_to_hotel.count(hotel_name) != 0){
+			return name_to_hotel[hotel_name].GetClientsCount();
+		} else {
+			return 0;
 		}
-		return res;
 	}
 
 	unsigned int Rooms(const string &hotel_name) const
 	{
-		if (hotel_to_rooms_count.count(hotel_name) != 0){
-			return hotel_to_rooms_count.at(hotel_name);
+		if (name_to_hotel.count(hotel_name) != 0){
+			return name_to_hotel.at(hotel_name).GetRoomsCount();
 		} else {
 			return 0;
 		}
@@ -36,46 +72,19 @@ public:
 
 	void Book(const string &hotel_name, long long int time, unsigned int client_id, unsigned int room_count)
 	{
-		hotel_to_time[hotel_name].push(time);
-
-		hotel_to_rooms[hotel_name].push(room_count);
-		hotel_to_rooms_count[hotel_name] += room_count;
-
-		hotel_to_clients[hotel_name].push(client_id);
-		hotel_to_client_counts[hotel_name][client_id] += 1;
-
+		Hotel &hotel = name_to_hotel[hotel_name];
+		hotel.Book(time, client_id, room_count);
 		if (time != current_time){
-			current_time = time;
-			for (auto &[hotel, time]: hotel_to_time){
-				ClearData(hotel);
+			for (auto &[name, hotelObj]: name_to_hotel){
+				hotelObj.Clear(time - 86400);
 			}
 		}
 		current_time = time;
 	}
 
 private:
-	void ClearData (const string &hotel_name)
-	{
-		long long int start_time = current_time - 86400;
-		auto &time = hotel_to_time.at(hotel_name);
-		auto &rooms = hotel_to_rooms.at(hotel_name);
-		auto &rooms_count = hotel_to_rooms_count.at(hotel_name);
-		auto &clients = hotel_to_clients.at(hotel_name);
-		auto &clients_count = hotel_to_client_counts.at(hotel_name);
-		while (!time.empty() && time.front() <= start_time){
-			time.pop();
-			rooms_count -= rooms.front();
-			rooms.pop();
-			clients_count[clients.front()] -= 1;
-			clients.pop();
-		}
-	}
 	long long int current_time = 0;
-	map<string, queue<long long int>> hotel_to_time;
-	map<string, queue<unsigned int>> hotel_to_rooms;
-	map<string, unsigned int> hotel_to_rooms_count;
-	map<string, queue<unsigned int>> hotel_to_clients;
-	map<string, map<unsigned int, unsigned int>> hotel_to_client_counts;
+	map<string, Hotel> name_to_hotel;
 };
 
 
@@ -97,13 +106,10 @@ int main() {
 
 		if (query_type == "BOOK") {
 			long long int time;
-			cin >> time;
 			string hotel_name;
-			cin >> hotel_name;
 			unsigned int client_id;
-			cin >> client_id;
 			unsigned int room_count;
-			cin >> room_count;
+			cin >> time >> hotel_name >> client_id >> room_count;
 
 			bsystem.Book(hotel_name, time, client_id, room_count);
 		} else if (query_type == "CLIENTS") {
