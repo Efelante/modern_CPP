@@ -8,54 +8,23 @@
 #include <utility>
 #include <numeric>
 
-#define MAX_CLIENT_ID 10e9
-
 using namespace std;
-class Hotel {
-public:
-		Hotel(){};
-		void Clear(long long int start_time)
-		{
-			while (!time.empty() && time.front() <= start_time){
-				time.pop();
-				rooms_count -= rooms.front();
-				rooms.pop();
-				clients_count[clients.front()] -= 1;
-				clients.pop();
-			}
-		}
 
-		unsigned int GetClientsCount(){
-				return count_if(clients_count.begin(), clients_count.end(), [](const auto &client){return (client.second > 0);});
-		}
-
-		unsigned int GetRoomsCount() const{
-				return rooms_count; 
-		}
-
-		void Book(long long int _time, unsigned int client_id, unsigned int room_count)
-	{
-		time.push(_time);
-		rooms.push(room_count);
-		rooms_count += room_count;
-		clients.push(client_id);
-		clients_count[client_id] += 1;
-	}
-private:
-		unsigned int rooms_count;
-		map<unsigned int, unsigned int> clients_count;
-		queue<unsigned int> clients;
-		queue<unsigned int> rooms;
-		queue<long long int> time;
+struct Event {
+		string name;
+		long long int time;
+		unsigned int client_id;
+		unsigned int room_count;
 };
+
 class BookingSystem {
 public:
 	BookingSystem() {};
 
-	unsigned int Clients(const string &hotel_name)
+	unsigned int Clients(const string &hotel_name) const
 	{
-		if (name_to_hotel.count(hotel_name) != 0){
-			return name_to_hotel[hotel_name].GetClientsCount();
+		if (hotel_clients.count(hotel_name) != 0){
+				return hotel_clients.at(hotel_name).size();
 		} else {
 			return 0;
 		}
@@ -63,8 +32,8 @@ public:
 
 	unsigned int Rooms(const string &hotel_name) const
 	{
-		if (name_to_hotel.count(hotel_name) != 0){
-			return name_to_hotel.at(hotel_name).GetRoomsCount();
+		if (hotel_rooms.count(hotel_name) != 0){
+			return hotel_rooms.at(hotel_name);
 		} else {
 			return 0;
 		}
@@ -72,19 +41,23 @@ public:
 
 	void Book(const string &hotel_name, long long int time, unsigned int client_id, unsigned int room_count)
 	{
-		Hotel &hotel = name_to_hotel[hotel_name];
-		hotel.Book(time, client_id, room_count);
-		if (time != current_time){
-			for (auto &[name, hotelObj]: name_to_hotel){
-				hotelObj.Clear(time - 86400);
-			}
+		events.push({hotel_name, time, client_id, room_count});
+		hotel_rooms[hotel_name] += room_count;
+		hotel_clients[hotel_name][client_id] += 1;
+		while (events.front().time <= (time - 86400)){
+				hotel_rooms[events.front().name] -= events.front().room_count;
+				hotel_clients[events.front().name][events.front().client_id] -= 1;
+				if (hotel_clients[events.front().name][events.front().client_id] == 0){
+				hotel_clients[events.front().name].erase(events.front().client_id);
+				}
+				events.pop();
 		}
-		current_time = time;
 	}
 
 private:
-	long long int current_time = 0;
-	map<string, Hotel> name_to_hotel;
+	map<string, unsigned int> hotel_rooms;
+	map<string, map<unsigned int, unsigned int>> hotel_clients;
+	queue<Event> events;
 };
 
 
