@@ -23,22 +23,22 @@ void TestConstruction() {
   ASSERT_EQUAL(five_strings[2], "Hello");
 }
 
-//void TestPushBack() {
-//  SimpleVector<int> v;
-//  for (int i = 10; i >= 1; --i) {
-//    v.PushBack(i);
-//    ASSERT(v.Size() <= v.Capacity());
-//  }
-//  sort(begin(v), end(v));
-//
-//  const vector<int> expected = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-//  ASSERT_EQUAL(v.Size(), expected.size());
-//  ASSERT(equal(begin(v), end(v), begin(expected)));
-//}
+void TestPushBack() {
+  SimpleVector<int> v;
+  for (int i = 10; i >= 1; --i) {
+    v.PushBack(i);
+    ASSERT(v.Size() <= v.Capacity());
+  }
+  sort(begin(v), end(v));
+
+  const vector<int> expected = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  ASSERT_EQUAL(v.Size(), expected.size());
+  ASSERT(equal(begin(v), end(v), begin(expected)));
+}
 
 int main() {
   TestRunner tr;
   RUN_TEST(tr, TestConstruction);
-  //RUN_TEST(tr, TestPushBack);
+  RUN_TEST(tr, TestPushBack);
   return 0;
 }
