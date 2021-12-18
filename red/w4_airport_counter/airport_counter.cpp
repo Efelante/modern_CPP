@@ -14,34 +14,60 @@ template <typename TAirport>
 class AirportCounter {
 public:
   // конструктор по умолчанию: список элементов пока пуст
-  AirportCounter();
+  AirportCounter()
+  {
+	  for (auto airport = 0; airport != (int)TAirport::Last_; airport++){
+		  airport_to_count[(TAirport)airport] = 0;
+	  }
+  }
 
   // конструктор от диапазона элементов типа TAirport
   template <typename TIterator>
-  AirportCounter(TIterator begin, TIterator end);
+  AirportCounter(TIterator begin, TIterator end) 
+  {
+	  AirportCounter();
+	  for (auto it = begin; it != end; it = next(it)){
+		  airport_to_count[*it]++;
+	  }
+  }
 
   // получить количество элементов, равных данному
-  size_t Get(TAirport airport) const;
+  size_t Get(TAirport airport) const
+  {
+	  return airport_to_count.at(airport);
+  }
 
   // добавить данный элемент
-  void Insert(TAirport airport);
+  void Insert(TAirport airport)
+  {
+	  airport_to_count[airport] += 1;
+  }
 
   // удалить одно вхождение данного элемента
-  void EraseOne(TAirport airport);
+  void EraseOne(TAirport airport)
+  {
+	  airport_to_count[airport] -= 1;
+  }
 
   // удалить все вхождения данного элемента
-  void EraseAll(TAirport airport);
+  void EraseAll(TAirport airport)
+  {
+	  airport_to_count[airport] = 0;
+  }
 
   using Item = pair<TAirport, size_t>;
-  using Items = /* ??? */;
+  using Items = map<TAirport, size_t>;
 
   // получить некоторый объект, по которому можно проитерироваться,
   // получив набор объектов типа Item - пар (аэропорт, количество),
   // упорядоченных по аэропорту
-  Items GetItems() const;
+  Items GetItems() const
+  {
+	  return airport_to_count;
+  }
 
 private:
-  // ???
+  Items airport_to_count;
 };
 
 void TestMoscow() {
