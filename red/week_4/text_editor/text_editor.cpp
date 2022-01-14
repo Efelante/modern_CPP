@@ -2,6 +2,8 @@
 #include "test_runner.h"
 using namespace std;
 
+#define MAX_LENGTH 10e6
+
 class Editor {
  public:
   // Реализуйте конструктор по умолчанию и объявленные методы
@@ -13,7 +15,73 @@ class Editor {
   void Copy(size_t tokens = 1);
   void Paste();
   string GetText() const;
+private:
+  string text;
+  string clipboard;
+  size_t cursor_pos = 0;
 };
+
+Editor::Editor()
+{
+	text.reserve(MAX_LENGTH);
+	clipboard.reserve(MAX_LENGTH);
+}
+
+void Editor::Left()
+{
+	if (cursor_pos){
+		cursor_pos -= 1;
+	} else {
+		// Cursor is at the beginning
+	}
+}
+
+void Editor::Right()
+{
+	if (cursor_pos < text.size()){
+		cursor_pos += 1;
+	} else {
+		// Cursor is at the end
+	}
+}
+
+void Editor::Insert(char token)
+{
+	text.insert(cursor_pos, 1, token);
+	cursor_pos += 1;
+}
+
+void Editor::Copy(size_t tokens)
+{
+	tokens = min(text.size() - cursor_pos, tokens);
+	if (0 == tokens){
+		clipboard.clear();
+	} else {
+		clipboard.insert(0, text, 0, tokens);
+	}
+}
+
+void Editor::Cut(size_t tokens)
+{
+	tokens = min(text.size() - cursor_pos, tokens);
+	if (0 == tokens){
+		clipboard.clear();
+	} else {
+		clipboard.insert(0, text, cursor_pos, tokens);
+		text.erase(cursor_pos, tokens);
+	}
+}
+
+void Editor::Paste()
+{
+	text.insert(cursor_pos, clipboard);
+	cursor_pos += clipboard.size();
+}
+
+string Editor::GetText() const
+{
+	return text;
+}
 
 void TypeText(Editor& editor, const string& text) {
   for(char c : text) {
