@@ -1,4 +1,6 @@
 #include <string>
+#include <deque>
+#include <array>
 #include "test_runner.h"
 using namespace std;
 
@@ -16,20 +18,19 @@ class Editor {
   void Paste();
   string GetText() const;
 private:
-  string text;
-  string clipboard;
+  deque<char> text;
+  array<char, 1000000> clipboard;
   size_t cursor_pos = 0;
+  size_t clipboard_tokens = 0;
 };
 
 Editor::Editor()
 {
-	text.reserve(MAX_LENGTH);
-	clipboard.reserve(MAX_LENGTH);
 }
 
 void Editor::Left()
 {
-	if (cursor_pos){
+	if (cursor_pos != 0){
 		cursor_pos -= 1;
 	} else {
 		// Cursor is at the beginning
@@ -38,7 +39,7 @@ void Editor::Left()
 
 void Editor::Right()
 {
-	if (cursor_pos < text.size()){
+	if (cursor_pos != text.size()){
 		cursor_pos += 1;
 	} else {
 		// Cursor is at the end
@@ -47,40 +48,38 @@ void Editor::Right()
 
 void Editor::Insert(char token)
 {
-	text.insert(cursor_pos, 1, token);
-	cursor_pos += 1;
+	text.insert(text.begin() + cursor_pos, token);
+	cursor_pos++;
 }
 
 void Editor::Copy(size_t tokens)
 {
 	tokens = min(text.size() - cursor_pos, tokens);
-	if (0 == tokens){
-		clipboard.clear();
-	} else {
-		clipboard.insert(0, text, 0, tokens);
+	for(size_t i = 0; i < tokens; ++i){
+		clipboard[i] = text[cursor_pos + i];
 	}
+	clipboard_tokens = tokens;
 }
 
 void Editor::Cut(size_t tokens)
 {
 	tokens = min(text.size() - cursor_pos, tokens);
-	if (0 == tokens){
-		clipboard.clear();
-	} else {
-		clipboard.insert(0, text, cursor_pos, tokens);
-		text.erase(cursor_pos, tokens);
+	for(size_t i = 0; i < tokens; ++i){
+		clipboard[i] = text[cursor_pos + i];
 	}
+	clipboard_tokens = tokens;
+	text.erase(text.begin() + cursor_pos, text.begin() + cursor_pos + tokens);
 }
 
 void Editor::Paste()
 {
-	text.insert(cursor_pos, clipboard);
-	cursor_pos += clipboard.size();
+	text.insert(text.begin() + cursor_pos, clipboard.begin(), clipboard.begin() + clipboard_tokens);
+	cursor_pos += clipboard_tokens;
 }
 
 string Editor::GetText() const
 {
-	return text;
+	return string(text.begin(), text.end());
 }
 
 void TypeText(Editor& editor, const string& text) {
