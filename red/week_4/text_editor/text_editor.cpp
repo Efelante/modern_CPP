@@ -22,7 +22,7 @@ private:
   list<char> text;
   array<char, 1000000> clipboard;
   list<char>::iterator cursor = text.end();
-  size_t cursor_pos = 0;
+  size_t tokens_to_the_right = 0;
   size_t clipboard_tokens = 0;
 };
 
@@ -32,9 +32,9 @@ Editor::Editor()
 
 void Editor::Left()
 {
-	if (cursor_pos != 0){
+	if (cursor != text.begin()){
 		cursor = prev(cursor);
-		cursor_pos--;
+		tokens_to_the_right++;
 	} else {
 		// Cursor is at the beginning
 	}
@@ -42,9 +42,9 @@ void Editor::Left()
 
 void Editor::Right()
 {
-	if (cursor_pos != text.size()){
+	if (cursor != text.end()){
 		cursor = next(cursor);
-		cursor_pos++;
+		tokens_to_the_right--;
 	} else {
 		// Cursor is at the end
 	}
@@ -53,19 +53,18 @@ void Editor::Right()
 void Editor::Insert(char token)
 {
 	text.insert(cursor, token);
-	cursor_pos++;
 }
 
 void Editor::Copy(size_t tokens)
 {
-	tokens = min(text.size() - cursor_pos, tokens);
+	tokens = min(tokens_to_the_right, tokens);
 	copy_n(cursor, tokens, clipboard.begin());
 	clipboard_tokens = tokens;
 }
 
 void Editor::Cut(size_t tokens)
 {
-	tokens = min(text.size() - cursor_pos, tokens);
+	tokens = min(tokens_to_the_right, tokens);
 	copy_n(cursor, tokens, clipboard.begin());
 	clipboard_tokens = tokens;
 
@@ -73,6 +72,7 @@ void Editor::Cut(size_t tokens)
 	for (size_t i = 0; i < tokens; ++i){
 		cursor = text.erase(cursor);
 	}
+	tokens_to_the_right -= tokens;
 }
 
 void Editor::Paste()
