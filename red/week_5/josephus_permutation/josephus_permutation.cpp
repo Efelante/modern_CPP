@@ -3,23 +3,28 @@
 #include <cstdint>
 #include <iterator>
 #include <numeric>
-#include <vector>
+#include <deque>
 #include <iostream>
 
 using namespace std;
 
 template <typename RandomIt>
 void MakeJosephusPermutation(RandomIt first, RandomIt last, uint32_t step_size) {
-  vector<typename RandomIt::value_type> pool(first, last);
-  size_t cur_pos = 0;
-  while (!pool.empty()) {
-    *(first++) = pool[cur_pos];
-    pool.erase(pool.begin() + cur_pos);
-    if (pool.empty()) {
-      break;
-    }
-    cur_pos = (cur_pos + step_size - 1) % pool.size();
-  }
+	if (step_size > 1){
+		deque<typename RandomIt::value_type> pool;
+		for (auto it = first; it != last; ++it){
+			pool.push_back(move(*it));
+		}
+		size_t cur_pos = 0;
+		while (!pool.empty()) {
+			*(first++) = move(pool[cur_pos]);
+			pool.erase(pool.begin() + cur_pos);
+			if (pool.empty()) {
+				break;
+			}
+			cur_pos = (cur_pos + step_size - 1) % pool.size();
+		}
+	}
 }
 
 vector<int> MakeTestVector() {
