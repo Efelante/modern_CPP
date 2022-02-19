@@ -21,23 +21,21 @@ RandomIt NextListLoopIt(RandomIt it, list<typename RandomIt::value_type> &lst)
 
 template <typename RandomIt>
 void MakeJosephusPermutation(RandomIt first, RandomIt last, uint32_t step_size) {
-	if (step_size > 1){
-		list<typename RandomIt::value_type> pool;
-		for (auto it = first; it != last; ++it){
-			pool.push_back(move(*it));
+	list<typename RandomIt::value_type> pool;
+	for (auto it = first; it != last; ++it){
+		pool.push_back(move(*it));
+	}
+	auto pool_it = pool.begin();
+	while (!pool.empty()) {
+		*(first++) = move(*pool_it);
+		auto next_it = NextListLoopIt(pool_it, pool);
+		pool.erase(pool_it);
+		if (pool.empty()) {
+			break;
 		}
-		auto pool_it = pool.begin();
-		while (!pool.empty()) {
-			*(first++) = move(*pool_it);
-			auto next_it = NextListLoopIt(pool_it, pool);
-			pool.erase(pool_it);
-			if (pool.empty()) {
-				break;
-			}
-			pool_it = next_it;
-			for (size_t i = 1; i < step_size; ++i){
-				pool_it = NextListLoopIt(pool_it, pool);
-			}
+		pool_it = next_it;
+		for (size_t i = 1; i < step_size; ++i){
+			pool_it = NextListLoopIt(pool_it, pool);
 		}
 	}
 }
