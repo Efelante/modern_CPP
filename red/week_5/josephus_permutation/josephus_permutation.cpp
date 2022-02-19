@@ -3,26 +3,41 @@
 #include <cstdint>
 #include <iterator>
 #include <numeric>
-#include <deque>
+#include <list>
 #include <iostream>
 
 using namespace std;
 
 template <typename RandomIt>
+RandomIt NextListLoopIt(RandomIt it, list<typename RandomIt::value_type> &lst)
+{
+	if (next(it) == lst.end()){
+		it = lst.begin();
+	} else {
+		it = next(it);
+	}
+	return it;
+}
+
+template <typename RandomIt>
 void MakeJosephusPermutation(RandomIt first, RandomIt last, uint32_t step_size) {
 	if (step_size > 1){
-		deque<typename RandomIt::value_type> pool;
+		list<typename RandomIt::value_type> pool;
 		for (auto it = first; it != last; ++it){
 			pool.push_back(move(*it));
 		}
-		size_t cur_pos = 0;
+		auto pool_it = pool.begin();
 		while (!pool.empty()) {
-			*(first++) = move(pool[cur_pos]);
-			pool.erase(pool.begin() + cur_pos);
+			*(first++) = move(*pool_it);
+			auto next_it = NextListLoopIt(pool_it, pool);
+			pool.erase(pool_it);
 			if (pool.empty()) {
 				break;
 			}
-			cur_pos = (cur_pos + step_size - 1) % pool.size();
+			pool_it = next_it;
+			for (size_t i = 1; i < step_size; ++i){
+				pool_it = NextListLoopIt(pool_it, pool);
+			}
 		}
 	}
 }
