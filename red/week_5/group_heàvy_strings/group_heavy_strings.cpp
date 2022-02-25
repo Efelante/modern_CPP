@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <set>
 
 using namespace std;
 
@@ -22,6 +23,21 @@ using Char = typename String::value_type;
 
 template <typename String>
 vector<Group<String>> GroupHeavyStrings(vector<String> strings) {
+	vector<Group<String>> res;
+	map<set<Char<String>>, size_t> unique_strings;
+	size_t id = 0;
+	for (const auto &s: strings){
+		set<Char<String>> str(s.begin(), s.end());
+		if (unique_strings.count(str)){
+			res[unique_strings[str]].push_back(move(s));
+		} else {
+			res.push_back({});	
+			unique_strings[move(str)] = id;
+			res[id].push_back(move(s));
+			id++;
+		}
+	}
+	return res;
   // Напишите реализацию функции,
   // использовав не более 1 копирования каждого символа
 }
