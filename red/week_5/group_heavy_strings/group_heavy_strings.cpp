@@ -24,22 +24,15 @@ using Char = typename String::value_type;
 template <typename String>
 vector<Group<String>> GroupHeavyStrings(vector<String> strings) {
 	vector<Group<String>> res;
-	map<set<Char<String>>, vector<size_t>> string_to_groups;
-	for (size_t i = 0; i < strings.size(); ++i){
-		set<Char<String>> str(strings[i].begin(), strings[i].end());
-		string_to_groups[move(str)].push_back(i);
+	map<set<Char<String>>, vector<String>> string_to_groups;
+	for (auto &s: strings){
+		set<Char<String>> str(s.begin(), s.end());
+		string_to_groups[move(str)].push_back(move(s));
 	}
-	size_t i = 0;
-	for (auto &[str, ids]: string_to_groups){
-		res.push_back({});
-		for (auto &id: ids){
-			res[i].push_back(move(strings[id]));
-		}
-		++i;
+	for (auto &[str, group]: string_to_groups){
+		res.push_back(move(group));
 	}
 	return res;
-  // Напишите реализацию функции,
-  // использовав не более 1 копирования каждого символа
 }
 
 
