@@ -2,6 +2,9 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <algorithm>
+
+using namespace std;
 
 // Реализуйте шаблон SimpleVector
 template <typename T>
@@ -13,12 +16,32 @@ public:
 	  _end = NULL;
 	  capacity = 0;
   }
+
   explicit SimpleVector(size_t size)
   {
 	  data = new T[size];
 	  _end = data + size;
 	  capacity = size;
   }
+
+  SimpleVector(const SimpleVector<T> &other)
+  {
+	  capacity = other.Capacity();
+	  data = new T[capacity];
+	  _end = data + other.Size();
+	  copy(other.begin(), other.end(), begin());
+  }
+
+  SimpleVector<T>& operator=(const SimpleVector<T> &other)
+  {
+	  delete[] data;
+	  capacity = other.Capacity();
+	  data = new T[capacity];
+	  _end = data + other.Size();
+	  copy(other.begin(), other.end(), begin());
+	  return *this; 
+  }
+
   ~SimpleVector()
   {
 	  delete[] data;
