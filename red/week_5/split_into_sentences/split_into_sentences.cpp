@@ -1,6 +1,8 @@
 #include "test_runner.h"
 
 #include <vector>
+#include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -15,6 +17,23 @@ using Sentence = vector<Token>;
 // Класс Token имеет метод bool IsEndSentencePunctuation() const
 template <typename Token>
 vector<Sentence<Token>> SplitIntoSentences(vector<Token> tokens) {
+	auto sentence_begin = tokens.begin();
+	while(sentence_begin != tokens.end()){
+		cout << sentence_begin->data << " ";
+		auto sentence_end = find_if(sentence_begin, tokens.end(), 
+				[](const auto &token){
+				return (token.IsEndSentencePunctuation() == true);});
+		if (sentence_end != tokens.end()){
+			sentence_end = find_if(next(sentence_end), tokens.end(), 
+					[](const auto &token){
+					return (token.IsEndSentencePunctuation() == false);});
+			cout << prev(sentence_end)->data << endl;
+			sentence_begin = sentence_end;
+		} else {
+			sentence_begin = sentence_end;
+			cout << prev(sentence_end)->data << endl;
+		}
+	}
   // Напишите реализацию функции, не копируя объекты типа Token
 }
 
@@ -64,6 +83,9 @@ void TestSplitting() {
 
 int main() {
   TestRunner tr;
-  RUN_TEST(tr, TestSplitting);
+  //RUN_TEST(tr, TestSplitting);
+	SplitIntoSentences(vector<TestToken>({{"Split"}, {"into"}, {"sentences"}, {"!"}}));
+    SplitIntoSentences(vector<TestToken>({{"Split"}, {"into"}, {"sentences"}, {"!", true}}));
+    SplitIntoSentences(vector<TestToken>({{"Split"}, {"into"}, {"sentences"}, {"!", true}, {"!", true}, {"Without"}, {"copies"}, {".", true}}));
   return 0;
 }
