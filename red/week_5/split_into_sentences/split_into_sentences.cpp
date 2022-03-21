@@ -20,11 +20,17 @@ vector<Sentence<Token>> SplitIntoSentences(vector<Token> tokens) {
 	vector<Sentence<Token>> res;
 	auto sentence_begin = tokens.begin();
 	while(sentence_begin != tokens.end()){
+		// Find the beginning of the sentence end
 		auto sentence_end = find_if(sentence_begin, tokens.end(), [](const auto &token){ return (token.IsEndSentencePunctuation() == true);});
 		if (sentence_end != tokens.end()){
+			// Find the end of the sentence end
 			sentence_end = find_if(next(sentence_end), tokens.end(), [](const auto &token){ return (token.IsEndSentencePunctuation() == false);});
 		} 
-		res.push_back({sentence_begin, sentence_end});
+		Sentence<Token> sentence;
+		for (auto it = sentence_begin; it != sentence_end; it++){
+			sentence.push_back(move(*it));
+		}
+		res.push_back(move(sentence));
 		sentence_begin = sentence_end;
 	}
 	return res;
