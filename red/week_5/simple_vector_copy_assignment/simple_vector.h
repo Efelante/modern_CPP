@@ -32,6 +32,15 @@ public:
 	  copy(other.begin(), other.end(), begin());
   }
 
+  SimpleVector(SimpleVector<T> &&other)
+  {
+	  capacity = other.Capacity();
+	  data = other.data;
+	  _end = data + other.Size();
+	  other.data = other._end = NULL;
+	  other.capacity = 0;
+  }
+
   SimpleVector<T>& operator=(const SimpleVector<T> &other)
   {
 	  delete[] data;
@@ -62,10 +71,12 @@ public:
   {
 	  return (end() - begin()); 
   }
+
   size_t Capacity() const
   {
 	  return capacity;
   }
+
   void PushBack(const T& value){
 	  if(Capacity() == Size()){
 		  if (Capacity() == 0){
@@ -90,6 +101,34 @@ public:
 		  }
 	  } else {
 		  *_end = value;
+		  _end += 1;
+	  }
+  }
+
+  void PushBack(T&& value){
+	  if(Capacity() == Size()){
+		  if (Capacity() == 0){
+			  capacity = 1;
+			  data = new T[capacity];
+			  *data = move(value);
+			  _end = data + capacity;
+		  } else {
+			  size_t old_size = Size();
+			  T 	*old_data = data;
+			  // Set new block
+			  capacity = 2 * old_size;
+			  data = new T[capacity];
+			  _end = data + old_size;
+			  for (int i = 0; i < old_size; i++){
+			      data[i] = move(old_data[i]);
+			  }
+			  delete[] old_data;
+			  // Push back
+			  *_end = move(value);
+			  _end += 1;
+		  }
+	  } else {
+		  *_end = move(value);
 		  _end += 1;
 	  }
   }
