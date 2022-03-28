@@ -14,18 +14,18 @@ void MergeSort(RandomIt range_begin, RandomIt range_end) {
 	} else {
 		vector<typename RandomIt::value_type> v(make_move_iterator(range_begin), make_move_iterator(range_end));
 		auto step = range_size / 3;
-		MergeSort(range_begin, range_begin + step);
-		MergeSort(range_begin + step, range_begin + 2 * step);
-		MergeSort(range_begin + 2 * step, range_begin + 3 * step);
+		MergeSort(v.begin(), v.begin() + step);
+		MergeSort(v.begin() + step, v.begin() + 2 * step);
+		MergeSort(v.begin() + 2 * step, v.begin() + 3 * step);
 		vector<typename RandomIt::value_type> tmp;
 		merge(
-				make_move_iterator(range_begin), make_move_iterator(range_begin + step),
-				make_move_iterator(range_begin + step), make_move_iterator(range_begin + 2 * step),
+				make_move_iterator(v.begin()), make_move_iterator(v.begin() + step),
+				make_move_iterator(v.begin() + step), make_move_iterator(v.begin() + 2 * step),
 				back_inserter(tmp)	
 				);
 		merge(
 				make_move_iterator(tmp.begin()), make_move_iterator(tmp.end()),
-				make_move_iterator(range_begin + 2 * step), make_move_iterator(range_begin + 3 * step),
+				make_move_iterator(v.begin() + 2 * step), make_move_iterator(v.begin() + 3 * step),
 				range_begin	
 				);
 	}
