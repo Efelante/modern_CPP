@@ -13,17 +13,15 @@ using namespace std;
 template <typename T>
 class PriorityCollection {
 public:
-  using Id = size_t/* тип, используемый для идентификаторов */;
+  using Id = int/* тип, используемый для идентификаторов */;
 
   // Добавить объект с нулевым приоритетом
   // с помощью перемещения и вернуть его идентификатор
   Id Add(T object)
   {
-	  Id ret = id;
 	  id_to_objects[id] = make_pair(move(object), 0);
 	  pr_to_ids[0].insert(id);
-	  id++;
-	  return ret;
+	  return id++;
   }
 
   // Добавить все элементы диапазона [range_begin, range_end)
@@ -34,8 +32,7 @@ public:
            IdOutputIt ids_begin)
   {
 	  for(auto it = range_begin; it != range_end; it = next(it)){
-		  *ids_begin = Add(*it);
-		  ids_begin = next(ids_begin);
+		  *ids_begin++ = Add(move(*it));
 	  }
 
   }
@@ -50,53 +47,60 @@ public:
   // Получить объект по идентификатору
   const T& Get(Id id) const
   {
-	return (id_to_objects[id].first);
+	return (id_to_objects.at(id).first);
 
   }
 
   // Увеличить приоритет объекта на 1
   void Promote(Id id)
   {
-	size_t prev_pr = id_to_objects[id].second;
+	  // Save the priority and increase it by 1
+	int old_priority = id_to_objects[id].second;
 	id_to_objects[id].second++;
-	pr_to_ids[prev_pr].erase(id);
-	if (pr_to_ids[prev_pr].size() == 0){
-		pr_to_ids.erase(prev_pr);
+	// Delete the object from the old priority's set
+	pr_to_ids[old_priority].erase(id);
+	if (pr_to_ids[old_priority].size() == 0){
+		pr_to_ids.erase(old_priority);
 	}
-	pr_to_ids[prev_pr + 1].insert(id);
+	// And promote it to the next set
+	pr_to_ids[old_priority + 1].insert(id);
   }
 
   // Получить объект с максимальным приоритетом и его приоритет
   pair<const T&, int> GetMax() const
   {
+	  // Get the set of objects having a max priority
 	  set<Id> max_pr_set = (*pr_to_ids.rbegin()).second;
-	  size_t max_id = *max_pr_set.rbegin();
-	  return (make_pair(id_to_objects.at(max_id).first, id_to_objects.at(max_id).second));
+	  // Get an ID of the newest object (it has max id)
+	  int max_id = *max_pr_set.rbegin();
+	  return id_to_objects.at(max_id);
 
   }
 
   // Аналогично GetMax, но удаляет элемент из контейнера
   pair<T, int> PopMax()
   {
+	  // Get the set of objects having a max priority
 	  set<Id> &max_pr_set = (*pr_to_ids.rbegin()).second;
-	  size_t max_id = *(max_pr_set.rbegin());
+	  // Get an ID of the newest object (it has max id)
+	  int max_id = *(max_pr_set.rbegin());
+	  // Create return value before the deleting of the element
 	  auto ret = make_pair(move(id_to_objects.at(max_id).first), id_to_objects.at(max_id).second);
+	  // Delete the object
 	  id_to_objects.erase(max_id);
 	  max_pr_set.erase(max_id);
 	  if (max_pr_set.size() == 0){
 		  pr_to_ids.erase(prev(pr_to_ids.end()));
 	  }
 	  return ret;
-
-
   }
 
 private:
   // Find object and promote it
-  map<Id, pair<T, size_t>> id_to_objects;
+  map<Id, pair<T, int>> id_to_objects;
   // Find the newest object with a max priority
-  map<size_t, set<Id>> pr_to_ids;
-  size_t id = 0;
+  map<int, set<Id>> pr_to_ids;
+  int id = 0;
 };
 
 class StringNonCopyable : public string {
