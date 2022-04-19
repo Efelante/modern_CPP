@@ -12,7 +12,26 @@ struct Stats {
 };
 
 Stats ExploreKeyWords(const set<string>& key_words, istream& input) {
-  // Implement this function
+  Stats stats;
+  string pub;
+  while (getline(input, pub)){
+	  for (const string &word: key_words){
+		  size_t word_size = word.size();
+		  size_t match_pos = pub.find(word);
+		  while(match_pos != string::npos){
+			  if (0
+				  || ((match_pos == 0) && ((match_pos + word_size) == pub.size())) 						
+			      || ((match_pos == 0) && (pub[match_pos + word_size] ==  ' ')) 					 
+			      || ((pub[match_pos - 1] == ' ') && (pub[match_pos + word_size] == ' ')) 	 
+			      || ((pub[match_pos - 1] == ' ') && ((match_pos + word_size) == pub.size()))
+				 ){
+				  stats.word_frequences[word] += 1;
+			  }
+			  match_pos = pub.find(word, match_pos + word_size);
+		  }
+	  }
+  }
+  return stats;
 }
 
 void TestBasic() {
