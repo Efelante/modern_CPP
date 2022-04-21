@@ -3,6 +3,8 @@
 
 #include <map>
 #include <string>
+#include <future>
+#include <functional>
 using namespace std;
 
 struct Stats {
@@ -39,10 +41,13 @@ Stats ExploreKeyword(const string &word, const string &pub){
 Stats ExploreKeyWords(const set<string>& key_words, istream& input) {
   Stats stats;
   string pub;
-  //vector<future<Stats>> word_fut_stat;
   while (getline(input, pub)){
+  	  vector<future<Stats>> word_fut_stat;
 	  for (const string &word: key_words){
-		  stats += ExploreKeyword(word, pub);
+		  word_fut_stat.push_back(async(ExploreKeyword, ref(word), ref(pub)));
+	  }
+	  for (future<Stats> &f: word_fut_stat){
+	     stats += f.get();
 	  }
   }
   return stats;
