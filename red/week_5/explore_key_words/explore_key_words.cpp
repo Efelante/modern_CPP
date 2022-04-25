@@ -5,7 +5,98 @@
 #include <string>
 #include <future>
 #include <functional>
+#include <numeric>
+#include <iostream>
+#include <utility>
+#include <iterator>
+
 using namespace std;
+
+template <typename Iterator>
+class Page {
+public:
+	Page(Iterator begin, Iterator end)
+	: _begin(begin), _end(end)
+	{
+		// Empty body
+	}
+
+	Iterator begin()
+	{
+		return _begin;
+	}
+
+	Iterator end()
+	{
+		return _end;
+	}
+
+	Iterator begin() const
+	{
+		return _begin;
+	}
+
+	Iterator end() const
+	{
+		return _end;
+	}
+
+
+	size_t size() const
+	{
+		return (_end - _begin);
+	}
+private:
+	Iterator _begin;
+	Iterator _end;
+};
+
+// Реализуйте шаблон класса Paginator
+
+template <typename Iterator>
+class Paginator {
+public:
+	Paginator(Iterator begin, Iterator end, size_t page_size)
+	{
+		Iterator page_start = begin;
+		Iterator page_end;
+		auto container_size = distance(begin, end);
+		size_t full_count = container_size / page_size;
+		for (size_t i = 0; i < full_count; ++i){
+			page_end = next(page_start, page_size);
+			pages.push_back(Page(page_start, page_end));
+			page_start = page_end;
+		}
+		if (container_size % page_size){
+			pages.push_back(Page(page_start, end));
+		}
+	}
+
+	size_t size() const
+	{
+		return pages.size();
+	}
+
+	auto begin()
+	{
+		return pages.begin();
+	}
+	
+	auto end()
+	{
+		return pages.end();
+	}
+	// Why don't I need const begin and end
+	// Because of auto?
+private:
+	vector<Page<Iterator>> pages;
+};
+
+template <typename C>
+auto Paginate(C& c, size_t page_size) {
+  return Paginator{c.begin(), c.end(), page_size};
+}
+
 
 struct Stats {
   map<string, int> word_frequences;
@@ -39,12 +130,24 @@ Stats ExploreKeyword(const string &word, const string &pub){
 }
 
 Stats ExploreKeyWords(const set<string>& key_words, istream& input) {
+  const int page_size = 4;
   Stats stats;
   string pub;
   while (getline(input, pub)){
   	  vector<future<Stats>> word_fut_stat;
-	  for (const string &word: key_words){
-		  word_fut_stat.push_back(async(ExploreKeyword, ref(word), ref(pub)));
+	  for (auto &page: Paginate(key_words, page_size)){
+		  word_fut_stat.push_back(
+	          async(
+		          [page, &pub](){
+			      	Stats stat;
+			      	for (const auto &word: page){
+			      	    stat += ExploreKeyword(word, pub);
+			      	}
+			      	return stat;
+			      }
+			  )
+		  );
+
 	  }
 	  for (future<Stats> &f: word_fut_stat){
 	     stats += f.get();
