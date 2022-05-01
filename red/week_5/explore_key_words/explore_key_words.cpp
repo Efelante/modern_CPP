@@ -25,23 +25,37 @@ void Stats::operator += (const Stats& other)
 	}
 }
 
+vector<string_view> SplitIntoWordsView(string_view str)
+{
+
+	// Trim whitespaces from the left
+	size_t pos = 0;
+	while (isspace(str[pos])){
+		pos++;
+	}
+	str.remove_prefix(pos);
+
+	vector<string_view> result;
+
+	while(1){
+		size_t space = str.find(" ");
+		result.push_back(str.substr(0, space));
+
+		if (space == str.npos){
+			break;
+		} else {
+			str.remove_prefix(space + 1);
+		}
+	}
+	return result;
+}
+
 Stats ExplorePub(const set<string> &words, const string &pub){
 	Stats stats;
-	for (const auto &word: words){
-		size_t word_size = word.size();
-		size_t match_pos = pub.find(word);
-		
-
-		while(match_pos != string::npos){
-			if (0
-					|| ((match_pos == 0) && ((match_pos + word_size) == pub.size())) 						
-					|| ((match_pos == 0) && (pub[match_pos + word_size] ==  ' ')) 					 
-					|| ((pub[match_pos - 1] == ' ') && (pub[match_pos + word_size] == ' ')) 	 
-					|| ((pub[match_pos - 1] == ' ') && ((match_pos + word_size) == pub.size()))
-			   ){
-				stats.word_frequences[word] += 1;
-			}
-			match_pos = pub.find(word, match_pos + word_size);
+	vector<string_view> pub_words = SplitIntoWordsView(pub);
+	for (const auto &pub_word: pub_words){
+		if (words.count(string(pub_word))){
+			stats.word_frequences[string(pub_word)] += 1;
 		}
 	}
 	return stats;
@@ -61,7 +75,7 @@ Stats ProcessPubs(const set<string> &key_words, const vector<string> &pubs)
 }
 
 Stats ExploreKeyWords(const set<string>& key_words, istream& input) {
-	const int pub_limit = 2;
+	const int pub_limit = 4;
 	Stats stats;
 	vector<string> pubs;
 	string pub;
