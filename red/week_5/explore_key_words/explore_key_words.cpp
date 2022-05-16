@@ -2,13 +2,8 @@
 #include "profile.h"
 
 #include <map>
+#include <set>
 #include <string>
-#include <future>
-#include <functional>
-#include <numeric>
-#include <iostream>
-#include <utility>
-#include <iterator>
 
 using namespace std;
 
@@ -25,75 +20,15 @@ void Stats::operator += (const Stats& other)
 	}
 }
 
-vector<string_view> SplitIntoWordsView(string_view str)
-{
-
-	// Trim whitespaces from the left
-	size_t pos = 0;
-	while (isspace(str[pos])){
-		pos++;
-	}
-	str.remove_prefix(pos);
-
-	vector<string_view> result;
-
-	while(1){
-		size_t space = str.find(" ");
-		result.push_back(str.substr(0, space));
-
-		if (space == str.npos){
-			break;
-		} else {
-			str.remove_prefix(space + 1);
-		}
-	}
-	return result;
-}
-
-Stats ExplorePub(const set<string> &words, const string &pub){
-	Stats stats;
-	vector<string_view> pub_words = SplitIntoWordsView(pub);
-	for (const auto &pub_word: pub_words){
-		if (words.count(string(pub_word))){
-			stats.word_frequences[string(pub_word)] += 1;
-		}
-	}
-	return stats;
-}
-
-Stats ProcessPubs(const set<string> &key_words, const vector<string> &pubs)
-{
-	Stats res;
-	vector<future<Stats>> fstats;
-	for (const auto &pub: pubs){
-		fstats.push_back(async(ExplorePub, ref(key_words), ref(pub)));
-	}
-	for (auto &fstat: fstats){
-		res += fstat.get();
-	}
-	return res;
-}
-
 Stats ExploreKeyWords(const set<string>& key_words, istream& input) {
-	const int pub_limit = 4;
-	Stats stats;
-	vector<string> pubs;
-	string pub;
-	while (getline(input, pub)){
-		pubs.push_back(pub);
-		if (pubs.size() == pub_limit){
-			// Process pub_limit pubs
-			stats += ProcessPubs(key_words, pubs);
-			pubs.clear();
-		} else {
-			// Keep collecting pubs
-		}
-	}
-	if (pubs.size()){
-		// Process the last pubs
-		stats += ProcessPubs(key_words, pubs);
-	}
-	return stats;
+  Stats stats;
+  string pub;
+  while (input >> pub){
+	  if (key_words.count(pub)){
+		  stats.word_frequences[pub] += 1;
+	  }
+  }
+  return stats;
 }
 
 void TestBasic() {
