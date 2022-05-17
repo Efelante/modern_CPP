@@ -17,22 +17,29 @@ class Synchronized {
 		explicit Synchronized(T initial = T()): value(initial) {}
 
 		struct Access {
-			Access(T &val, unique_lock<mutex> guard): ref_to_value(val), lock(move(guard)) {}
 			T& ref_to_value;
-		private:
-			unique_lock<mutex> lock;
+			lock_guard<mutex> *lock;
+
+			Access(T &value, mutex &mut):
+				ref_to_value(value)
+			{
+				lock = new lock_guard<mutex>(mut);
+			}
+
+			~Access()
+			{
+				delete lock;
+			}
 		};
 
 		Access GetAccess()
 		{
-			unique_lock<mutex> lock(val_access_mutex);
-			Access acc(value, move(lock));
-			return move(acc);
+			return Access(value, val_mut);
 		}
 
 	private:
 		T value;
-		mutex val_access_mutex;
+		mutex val_mut;
 };
 
 void TestConcurrentUpdate() {
