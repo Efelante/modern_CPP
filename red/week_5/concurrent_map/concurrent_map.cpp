@@ -4,9 +4,12 @@
 #include <algorithm>
 #include <future>
 #include <map>
+#include <mutex>
+#include <deque>
 #include <vector>
 #include <string>
 #include <random>
+#include <utility>
 using namespace std;
 
 template <typename K, typename V>
@@ -16,13 +19,44 @@ public:
 
   struct Access {
     V& ref_to_value;
+	lock_guard<mutex> lock;
   };
 
-  explicit ConcurrentMap(size_t bucket_count);
+  struct Bucket {
+  	map<K, V> bucket;
+	mutex guard;
+  };
 
-  Access operator[](const K& key);
+  explicit ConcurrentMap(size_t bucket_count):
+	  _bucket_count(bucket_count)
+  {
+	  buckets.resize(bucket_count);
+  }
 
-  map<K, V> BuildOrdinaryMap();
+  Access operator[](const K& key)
+  {
+	  lock_guard<mutex> lock(map_guard);
+	  auto bucket_id = key % _bucket_count;
+	  return {buckets[bucket_id].bucket[key], 
+		      lock_guard(buckets[bucket_id].guard)
+	         };
+  }
+
+  map<K, V> BuildOrdinaryMap()
+  {
+	  map<K, V> res;
+	  for (auto &b: buckets){
+		  lock_guard<mutex> lock(b.guard);
+		  for (const auto &[key, value]: b.bucket){
+			  res[key] = value;
+		  }
+	  }
+	  return move(res);
+  }
+private:
+  deque<Bucket> buckets;
+  size_t _bucket_count;
+  mutex map_guard;
 };
 
 void RunConcurrentUpdates(
@@ -52,7 +86,6 @@ void TestConcurrentUpdate() {
 
   ConcurrentMap<int, int> cm(thread_count);
   RunConcurrentUpdates(cm, thread_count, key_count);
-
   const auto result = cm.BuildOrdinaryMap();
   ASSERT_EQUAL(result.size(), key_count);
   for (auto& [k, v] : result) {
