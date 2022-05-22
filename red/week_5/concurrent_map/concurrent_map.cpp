@@ -18,8 +18,8 @@ public:
   static_assert(is_integral_v<K>, "ConcurrentMap supports only integer keys");
 
   struct Access {
-    V& ref_to_value;
 	lock_guard<mutex> lock;
+    V& ref_to_value;
   };
 
   struct Bucket {
@@ -35,10 +35,11 @@ public:
 
   Access operator[](const K& key)
   {
-	  lock_guard<mutex> lock(map_guard);
 	  auto bucket_id = key % _bucket_count;
-	  return {buckets[bucket_id].bucket[key], 
-		      lock_guard(buckets[bucket_id].guard)
+	  //lock_guard<mutex> lock(map_guard);
+	  return {
+		      lock_guard(buckets[bucket_id].guard), 
+		      buckets[bucket_id].bucket[key]
 	         };
   }
 
