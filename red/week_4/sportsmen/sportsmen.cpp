@@ -1,9 +1,6 @@
-﻿#include <algorithm> 
-#include <cmath> 
-#include <iostream> 
+﻿#include <iostream> 
 #include <list> 
-#include <string> 
-#include <set> 
+#include <vector> 
 
 #include "test_runner.h"
 
@@ -14,16 +11,14 @@ using namespace std;
 class SportsmenManager 
 { 
 public: 
+	SportsmenManager(): 
+		num_to_queue_pos(MAX_NUMBER +1, sportsmen_queue.end()) {}
+
 	void AddSportsman(int current, int num) 
 	{ 
-		list<int>::iterator insert_it;
-		if (num_to_queue_pos.find(num) == end(num_to_queue_pos)) {
-			insert_it = sportsmen_queue.end();
-		} else {
-			insert_it = num_to_queue_pos[num];
-		}
-		num_to_queue_pos[current] = sportsmen_queue.insert(insert_it, current);
+		num_to_queue_pos[current] = sportsmen_queue.insert(num_to_queue_pos[num], current);
 	} 
+
 	void PrintQueue() 
 	{
 		for (auto num: sportsmen_queue) {
@@ -34,7 +29,7 @@ public:
 	 
 private: 
 	list<int> sportsmen_queue;
-	map<int, list<int>::iterator> num_to_queue_pos;
+	vector<list<int>::iterator> num_to_queue_pos;
 };
 
 void TestExample(void)
@@ -50,7 +45,6 @@ int main()
 {
 	//TestRunner tr;
 	//RUN_TEST(tr, TestExample);
-
 	SportsmenManager sportsmens;
 				
 	int sportsmen_count; 
