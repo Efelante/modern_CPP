@@ -1,7 +1,7 @@
 ﻿#include <algorithm> 
 #include <cmath> 
 #include <iostream> 
-#include <map> 
+#include <list> 
 #include <string> 
 #include <set> 
 
@@ -9,84 +9,58 @@
 
 using namespace std; 
 
-class RouteManager 
+#define MAX_NUMBER 100000
+
+class SportsmenManager 
 { 
 public: 
-	void AddRoute(int start, int finish) 
+	void AddSportsman(int current, int num) 
 	{ 
-		reachable_lists_[start].insert(finish);
-		reachable_lists_[finish].insert(start); 
-	} 
-	int FindNearestFinish(int start, int finish) const 
-	{ 
-		int result = abs(start - finish); 
-		// If there is not express with a start station
-		if (reachable_lists_.count(start) < 1) { 
-			return result; 
+		list<int>::iterator insert_it;
+		if (num_to_queue_pos.find(num) == end(num_to_queue_pos)) {
+			insert_it = sportsmen_queue.end();
+		} else {
+			insert_it = num_to_queue_pos[num];
 		}
-		const set<int>& reachable_stations = reachable_lists_.at(start); 
-		if (!reachable_stations.empty()) { 
-			// If there is direct route
-			if (reachable_stations.count(finish)){
-				result = 0;
-			} else {
-				// Find nearest right station
-				auto nr = reachable_stations.upper_bound(finish);
-				if (nr == reachable_stations.begin() && 
-					nr != reachable_stations.end()){
-					result = min(result, abs(finish - *nr));
-				}
-				if (nr != reachable_stations.begin() && 
-					nr != reachable_stations.end()){
-					// find nearest left station
-					auto nl = prev(nr);
-					result = min(result, abs(finish - *nr));
-					result = min(result, abs(finish - *nl));
-				}
-				if (nr != reachable_stations.begin() && 
-					nr == reachable_stations.end()){
-					// find nearest left station
-					auto nl = prev(nr);
-					result = min(result, abs(finish - *nl));
-				}
-			}
-		} 
-		return result; 
+		num_to_queue_pos[current] = sportsmen_queue.insert(insert_it, current);
 	} 
+	void PrintQueue() 
+	{
+		for (auto num: sportsmen_queue) {
+			cout << num << " ";
+		}
+		cout << endl;
+	} 
+	 
 private: 
-	map<int, set<int>> reachable_lists_; 
+	list<int> sportsmen_queue;
+	map<int, list<int>::iterator> num_to_queue_pos;
 };
 
 void TestExample(void)
 {
-	RouteManager routes;
-	routes.AddRoute(-2, 5);
-	routes.AddRoute(10, 4);
-	routes.AddRoute(5, 8);
-	ASSERT_EQUAL(routes.FindNearestFinish(4, 10), 0);
-	ASSERT_EQUAL(routes.FindNearestFinish(4, -2), 6);
-	ASSERT_EQUAL(routes.FindNearestFinish(5, 0), 2);
-	ASSERT_EQUAL(routes.FindNearestFinish(5, 100), 92);
+	SportsmenManager sportsmens;
+	sportsmens.AddSportsman(2, 5);
+	sportsmens.AddSportsman(10, 4);
+	sportsmens.AddSportsman(5, 10);
+	sportsmens.PrintQueue();
 }
 
 int main() 
 {
 	//TestRunner tr;
 	//RUN_TEST(tr, TestExample);
+
+	SportsmenManager sportsmens;
 				
-	RouteManager routes; 
-	int query_count; 
-	cin >> query_count; 
-	for (int query_id = 0; query_id < query_count; ++query_id) { 
-		string query_type; 
-		cin >> query_type; 
-		int start, finish; 
-		cin >> start >> finish; 
-		if (query_type == "ADD") { 
-			routes.AddRoute(start, finish); 
-		} else if (query_type == "GO") { 
-			cout << routes.FindNearestFinish(start, finish) << "\n"; 
-		} 
+	int sportsmen_count; 
+	int cur_num; 
+	int pos_num; 
+	cin >> sportsmen_count; 
+	for (int sp = 0; sp < sportsmen_count; ++sp) { 
+		cin >> cur_num >> pos_num; 
+		sportsmens.AddSportsman(cur_num, pos_num);
 	} 
+	sportsmens.PrintQueue();
 	return 0; 
 }
