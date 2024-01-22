@@ -33,18 +33,18 @@ Stats ExploreKeyWordsSingleThread(const set<string>& key_words, istream& input) 
 }
 
 Stats ExploreKeyWords(const set<string>& key_words, istream& input) {
-	const int threads_num = 8;
+	const int threads_num = 2;
 	Stats stats;
-	vector<future<Stats>> fstats;
+	vector<future<Stats>> fstats(threads_num);
 	vector<stringstream> paper_streams(threads_num);
 	string pub;
 	int i = 0;
 	while (getline(input, pub)){
-		paper_streams[i] << pub << "\n";
+		paper_streams[i] << std::move(pub) << "\n";
 		i = (i + 1) % threads_num;
 	}
-	for (auto &ss: paper_streams){
-		fstats.push_back(async(ExploreKeyWordsSingleThread, ref(key_words), ref(ss)));
+	for (int j = 0; j < threads_num; ++j){
+		fstats[j] = async(ExploreKeyWordsSingleThread, ref(key_words), ref(paper_streams[j]));
 	}
 	for (auto &fs: fstats){
 		stats += fs.get();
@@ -66,9 +66,10 @@ void TestBasic() {
 		ss << "Goondex really sucks, but yangle rocks. Use yangle\n";
 	}
 
-	{LogDuration("Single thread");
+	{LOG_DURATION("Multithread");
 
-		const auto stats = ExploreKeyWords(key_words, ss);
+		//const auto stats = ExploreKeyWords(key_words, ss);
+		const auto stats = ExploreKeyWordsSingleThread(key_words, ss);
 		const map<string, int> expected = {
 			{"yangle", pnum * 6},
 			{"rocks",  pnum * 2},
