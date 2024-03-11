@@ -31,6 +31,8 @@ void SearchServer::AddQueriesStream(
   for (string current_query; getline(query_input, current_query); ) {
     const auto words = SplitIntoWords(current_query);
 
+    // Отображение docid -> кол-во повторов всех
+    // 			    слов запроса в документе
     map<size_t, size_t> docid_count;
     for (const auto& word : words) {
       for (const size_t docid : index.Lookup(word)) {
@@ -41,6 +43,9 @@ void SearchServer::AddQueriesStream(
     vector<pair<size_t, size_t>> search_results(
       docid_count.begin(), docid_count.end()
     );
+    // Сортируем {docid, count} по убыванию
+    // При совпадении значения метрики выбирается
+    // более ранний документ (с меньшим id)
     sort(
       begin(search_results),
       end(search_results),

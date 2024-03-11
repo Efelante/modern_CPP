@@ -10,6 +10,8 @@
 #include <sstream>
 #include <fstream>
 #include <random>
+#include <cstdlib>
+#include <ctime>
 #include <thread>
 using namespace std;
 
@@ -199,6 +201,118 @@ void TestBasicSearch() {
   };
   TestFunctionality(docs, queries, expected);
 }
+/*
+ *
+ * document_input содержит не более 50000 документов
+ *
+ * каждый документ содержит не более 1000 слов
+ *
+ * общее число различных слов во всех документах не
+ * превосходит 10000
+ *
+ * максимальная длина одного слова — 100 символов,
+ * слова состоят из строчных латинских букв и
+ * разделены одним или несколькими пробелами
+ *
+ * query_input содержит не более 500 000 запросов,
+ * каждый запрос содержит от 1 до 10 слов.
+ * */
+
+// Функция формирует слово по числовому шаблону, заменяя каждую цифру на букву.
+// Вход - 5-значное десятичное число
+// Выход - слово из 100 символов
+//
+// Из 5-буквенного слова можно сгенерировать 10^5 уникальных слов. Повторив 5-буквенное слово 20 раз получим 100-буквенное уникальное слово.
+string GenerateWord(int num_template)
+{
+	string tmplt(5, 'a');
+	string word(100, 'a');
+	size_t i = 0;
+	while (num_template != 0){
+		char letter = 'a' + num_template % 10;
+		tmplt[i] = letter;
+		++i;
+		num_template /= 10;
+	}
+	//cout << tmplt << endl;
+	for (uint8_t offset = 0; offset < 100; offset += 5) {
+		tmplt.copy(&word[offset], tmplt.size());
+	}
+	return word;
+}
+
+string GenerateDocument(const vector<string> &dict)
+{
+	string document;
+
+	srand(time(nullptr));
+	for (size_t i = 0; i < 1000; ++i) {
+		int doc_num = rand() % 10000;
+		document.append(" ");
+		document.append(dict[doc_num]);
+	}
+	return document;
+}
+
+string GenerateQuery(const vector<string> &dict)
+{
+	string query;
+
+	srand(time(nullptr));
+	for (size_t i = 0; i < 10; ++i) {
+		int query_num = rand() % 10000;
+		query.append(" ");
+		query.append(dict[query_num]);
+	}
+	return query;
+}
+
+//void TestSearchServer(istream& document_input, istream& query_input,
+void TestSearchServer()
+{
+
+	const int WORD_MAX_LENGTH = 100;
+	const int DIFFERENT_WORDS_COUNT = 10000;
+	//const int WORDS_IN_DOCUMENT = 1000;
+	const int WORDS_IN_DOCUMENT = 100;
+	//const int DOCUMENTS_COUNT = 50000;
+	const int DOCUMENTS_COUNT = 10000;
+	//const int QUERIES_COUNT = 500000;
+	const int QUERIES_COUNT = 20000;
+	const int WORDS_IN_QUERY = 10;
+
+	vector<string> dict(DIFFERENT_WORDS_COUNT);
+
+	for (int i = 10000; i < 20000; ++i){
+		dict[i - DIFFERENT_WORDS_COUNT] = GenerateWord(i);
+		
+	}
+	//for (int i = 0; i < 10000; ++i){
+	//	cout << dict[i] << endl;
+	//}
+	
+	vector<string> documents;
+	for (int i = 0; i < DOCUMENTS_COUNT; ++i) {
+		documents.push_back(GenerateDocument(dict));
+	}
+
+	vector<string> queries;
+	for (int i = 0; i < QUERIES_COUNT; ++i) {
+		queries.push_back(GenerateQuery(dict));
+	}
+
+	//for (const string &doc: documents) {
+	//	cout << doc;
+	//	cout << endl;
+	//}
+
+	istringstream document_input(Join('\n', documents));
+	istringstream query_input(Join('\n', queries));
+	ostringstream search_results_output;
+
+	SearchServer srv(document_input);
+	srv.AddQueriesStream(query_input, search_results_output);
+}
 
 int main() {
   TestRunner tr;
@@ -207,4 +321,5 @@ int main() {
   RUN_TEST(tr, TestHitcount);
   RUN_TEST(tr, TestRanking);
   RUN_TEST(tr, TestBasicSearch);
+  RUN_TEST(tr, TestSearchServer);
 }
