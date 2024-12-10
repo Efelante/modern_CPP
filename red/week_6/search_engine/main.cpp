@@ -1,6 +1,8 @@
 #include "search_server.h"
 #include "parse.h"
 #include "test_runner.h"
+#include "profile.h"
+#include "splitIntoWordsView.h"
 
 #include <algorithm>
 #include <iterator>
@@ -29,6 +31,7 @@ void TestFunctionality(
   srv.AddQueriesStream(queries_input, queries_output);
 
   const string result = queries_output.str();
+  cout << result << endl;
   const auto lines = SplitBy(Strip(result), '\n');
   ASSERT_EQUAL(lines.size(), expected.size());
   for (size_t i = 0; i < lines.size(); ++i) {
@@ -201,6 +204,74 @@ void TestBasicSearch() {
   };
   TestFunctionality(docs, queries, expected);
 }
+
+void TestSplitIntoWordsView() {
+  const vector<string> docs = {
+"a   b c   d ",
+"  a b c d",
+//"   c  d e f   ",
+//"d  e f    g"
+  };
+  for (const auto &doc: docs) {
+	  cout << doc << ":\n";
+	  for (const auto word: SplitIntoWordsView(doc)) {
+	  cout << "|" << word << "|\n";
+	  }
+  }
+
+}
+void Test7() {
+  const vector<string> docs = {
+"a   b c   d",
+"  a b c d",
+"   c  d e f   ",
+"d  e f    g"
+  };
+
+  const vector<string> queries = {
+"a",
+"b",
+"c",
+"d",
+"e",
+"f",
+"g",
+"b  c   d  f",
+"cde g",
+" c d",
+"  a b",
+"g"
+  };
+
+  const vector<string> expected = {
+    Join(' ', vector{
+      "we need some help:",
+      "{docid: 9, hitcount: 2}",
+      "{docid: 0, hitcount: 1}"
+    }),
+    Join(' ', vector{
+      "it:",
+      "{docid: 8, hitcount: 2}",
+      "{docid: 6, hitcount: 1}",
+      "{docid: 7, hitcount: 1}",
+    }),
+    "i love this game: {docid: 2, hitcount: 4}",
+    "tell me why: {docid: 5, hitcount: 2}",
+    "dislike:",
+    "about: {docid: 3, hitcount: 2}",
+  };
+  TestFunctionality(docs, queries, expected);
+}
+
+const int WORD_MAX_LENGTH = 100;
+const int DIFFERENT_WORDS_COUNT = 10000;
+//const int WORDS_IN_DOCUMENT = 1000;
+const int WORDS_IN_DOCUMENT = 100;
+//const int DOCUMENTS_COUNT = 50000;
+const int DOCUMENTS_COUNT = 5000;
+//const int QUERIES_COUNT = 500000;
+const int QUERIES_COUNT = 1;
+const int WORDS_IN_QUERY = 10;
 /*
  *
  * document_input содержит не более 50000 документов
@@ -246,7 +317,7 @@ string GenerateDocument(const vector<string> &dict)
 	string document;
 
 	srand(time(nullptr));
-	for (size_t i = 0; i < 1000; ++i) {
+	for (size_t i = 0; i < WORDS_IN_DOCUMENT; ++i) {
 		int doc_num = rand() % 10000;
 		document.append(" ");
 		document.append(dict[doc_num]);
@@ -271,47 +342,42 @@ string GenerateQuery(const vector<string> &dict)
 void TestSearchServer()
 {
 
-	const int WORD_MAX_LENGTH = 100;
-	const int DIFFERENT_WORDS_COUNT = 10000;
-	//const int WORDS_IN_DOCUMENT = 1000;
-	const int WORDS_IN_DOCUMENT = 100;
-	//const int DOCUMENTS_COUNT = 50000;
-	const int DOCUMENTS_COUNT = 10000;
-	//const int QUERIES_COUNT = 500000;
-	const int QUERIES_COUNT = 20000;
-	const int WORDS_IN_QUERY = 10;
 
 	vector<string> dict(DIFFERENT_WORDS_COUNT);
+	{LOG_DURATION("Generate words");
+		for (int i = 10000; i < 20000; ++i){
+			dict[i - DIFFERENT_WORDS_COUNT] = GenerateWord(i);
 
-	for (int i = 10000; i < 20000; ++i){
-		dict[i - DIFFERENT_WORDS_COUNT] = GenerateWord(i);
-		
+		}
 	}
-	//for (int i = 0; i < 10000; ++i){
-	//	cout << dict[i] << endl;
-	//}
-	
+
 	vector<string> documents;
-	for (int i = 0; i < DOCUMENTS_COUNT; ++i) {
-		documents.push_back(GenerateDocument(dict));
+	{LOG_DURATION("Generate documents");
+		for (int i = 0; i < DOCUMENTS_COUNT; ++i) {
+			documents.push_back(GenerateDocument(dict));
+		}
 	}
 
 	vector<string> queries;
-	for (int i = 0; i < QUERIES_COUNT; ++i) {
-		queries.push_back(GenerateQuery(dict));
+	{LOG_DURATION("Generate queries");
+		for (int i = 0; i < QUERIES_COUNT; ++i) {
+			queries.push_back(GenerateQuery(dict));
+		}
 	}
-
-	//for (const string &doc: documents) {
-	//	cout << doc;
-	//	cout << endl;
-	//}
 
 	istringstream document_input(Join('\n', documents));
 	istringstream query_input(Join('\n', queries));
 	ostringstream search_results_output;
 
 	SearchServer srv(document_input);
-	srv.AddQueriesStream(query_input, search_results_output);
+
+	{LOG_DURATION("Update document base");
+		srv.UpdateDocumentBase(document_input);
+	}
+
+	{LOG_DURATION("Add queries stream")
+		srv.AddQueriesStream(query_input, search_results_output);
+	}
 }
 
 int main() {
@@ -321,5 +387,7 @@ int main() {
   RUN_TEST(tr, TestHitcount);
   RUN_TEST(tr, TestRanking);
   RUN_TEST(tr, TestBasicSearch);
+  RUN_TEST(tr, Test7);
+  RUN_TEST(tr, TestSplitIntoWordsView);
   RUN_TEST(tr, TestSearchServer);
 }

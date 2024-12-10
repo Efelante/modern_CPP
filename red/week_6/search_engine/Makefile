@@ -1,5 +1,5 @@
 INCLUDE_PATHS = -I../../../include
-CXXFLAGS += -std=c++1z
+CXXFLAGS += -std=c++1z -g
 
 all:
 	$(CXX) *.cpp $(CXXFLAGS) $(INCLUDE_PATHS) -o a.out

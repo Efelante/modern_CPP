@@ -9,18 +9,21 @@
 #include <string>
 using namespace std;
 
+vector<string> SplitIntoWords(const string& line);
+
 class InvertedIndex {
 public:
-  void Add(const string& document);
+  void Add(string document);
   list<size_t> Lookup(const string& word) const;
 
-  const string& GetDocument(size_t id) const {
-    return docs[id];
-  }
+  //const string& GetDocument(size_t id) const {
+  //  return docs[id];
+  //}
 
 private:
   map<string, list<size_t>> index;
-  vector<string> docs;
+  //vector<string> docs;
+  size_t docs_count;
 };
 
 class SearchServer {
